@@ -56,6 +56,7 @@ class Autocomplete {
 
                 do {
                     selectElement.selectedIndex -= 1;
+                    if (selectElement.selectedIndex === -1) selectElement.selectedIndex = selectElement.options.length - 1;
                 } while (selectElement.selectedIndex >= 0 && this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("hidden"))
 
                 if (selectElement.selectedIndex < 0) {
@@ -83,10 +84,8 @@ class Autocomplete {
             let target = (<HTMLElement>e.target).closest(".autocomplete-menu-item") as HTMLElement;
             if (!target) return;
 
-            selectElement.selectedIndex = [ ...this.autocompleteMenuMock.children ].indexOf(target);
-            selectElement.dispatchEvent(new Event("change"));
-
-            this.updateAutocompleteMenu();
+            let selectedOption = this.selectElement.options[[ ...this.autocompleteMenuMock.children ].indexOf(target)];
+            this.filterAutocompleteMenu(selectedOption.textContent);
         });
 
         document.addEventListener("click", (e) => {
@@ -101,6 +100,8 @@ class Autocomplete {
 
             this.hide();
         });
+
+        window.addEventListener("resize", () => this.positionMenu());
 
         this.showAllOptionsButton.addEventListener("click", () => {
             this.filterAutocompleteMenu("", false);
@@ -195,6 +196,8 @@ class Autocomplete {
     }
 
     private updateAutocompleteMenu() {
+        console.debug(`Update menu's options.`);
+
         // Remove the currently selected option mock.
         this.selectedMenuOption?.classList.remove("selected");
 
@@ -215,6 +218,8 @@ class Autocomplete {
     }
 
     private filterAutocompleteMenu(value: string, deselectIfEmpty: boolean = true) {
+        console.debug(`Filtering menu.`);
+
         // If input mock value is empty, show all the options.
         if (!value) {
             for (const menuItemMock of this.autocompleteMenuMock.querySelectorAll(".hidden")) {
@@ -228,6 +233,8 @@ class Autocomplete {
                 this.selectedMenuOption?.classList.remove("selected");
                 this.selectedMenuOption = null;
             }
+
+            this.autocompleteMenuMock.classList.remove("hidden");
 
             return;
         }
@@ -348,10 +355,9 @@ class Autocomplete {
             this.autocompleteMenuMock.style.top = `${inputRect.top + inputRect.height + window.scrollY}px`;
         }
 
+        console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
         this.autocompleteMenuMock.style.width = `${inputRect.width}px`;
         this.autocompleteMenuMock.style.left = `${inputRect.left}px`;
-
-        this.autocompleteMenuMock.classList.remove("hidden");
     }
 }
 
