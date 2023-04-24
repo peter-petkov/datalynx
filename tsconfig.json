@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "target": "ESNext",
+        "removeComments": true,
+        "inlineSourceMap": true,
+        "experimentalDecorators": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "watch": true
+    },
+    "compileOnSave": true,
+    "exclude": [
+        "./node_modules"
+    ]
+}

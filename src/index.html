@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="autocomplete.css">
+    <style>
+
+        *, *:before, *:after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        label {
+            display: inline-block;
+            width: 10rem;
+        }
+    </style>
+</head>
+<body>
+<label>
+    Autocomplete
+    <select name="product-manufacturer" data-toggle="autocomplete" class="mt-2 form-field">
+        <option value="1" title="Explanation 1">A</option>
+        <option value="1" title="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus ea expedita fuga mollitia odit, placeat quod repellendus repudiandae sunt! Asperiores cupiditate deleniti est explicabo laborum molestiae nihil quis repudiandae sapiente!">Aa</option>
+        <option value="2">B</option>
+        <option value="3">C</option>
+    </select>
+</label>
+<script src="../dist/index.js"></script>
+</body>
+</html>
