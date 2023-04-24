@@ -505,27 +505,10 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# Conf Files
-TC.Server/supp/*
-TC.Server/database/db_conf.js
-
 # JetBrains Rider
 *.sln.iml
 .idea/
 .git/
-TC.Web/**/*.js
-TC.Web/**/*.js.map
 
 # VS Code
 .vscode/
-
-TC.Server/routes/*.js
-TC.Server/routes/*.js.map
-TC.Server/models/*.js
-TC.Server/models/*.js.map
-TC.Server/monitoring/*.js
-TC.Server/monitoring/*.js.map
-TC.Server/*.js
-TC.Server/*.js.map
-
-TC.Server-error.log
