@@ -14,12 +14,14 @@ class Autocomplete {
     private listeners: any = {};
 
     constructor(selectElement: HTMLSelectElement) {
+        if (Autocomplete.autocompletes.has(selectElement)) return;
+
         this.selectElement = selectElement;
 
         // First, generate the extra elements.
         this.generateAutocompleteMock();
 
-        this.selectElement["autocompleteInput"] = this.autocompleteInputMock;
+        this.selectElement["autocompleteInput"] = this.autocompleteInputMock as HTMLInputElement;
 
         // Autocompletes must start out empty and then get selected via the UI.
         selectElement.selectedIndex = -1;
@@ -38,6 +40,9 @@ class Autocomplete {
         // When focusing the input mock, if at least 1 option matches the input filter, show the option menu.
         this.autocompleteInputMock.addEventListener("focus", () => {
             if ([ ...this.autocompleteMenuMock.children ].some(c => !c.classList.contains("hidden"))) {
+                // If the user manually focuses the input mock, we want to show all the options available,
+                // since showing only 1 option might not be so useful. Manually typing should still filter the options.
+                this.filterAutocompleteMenu("", false);
                 this.show();
             }
         });
@@ -60,7 +65,7 @@ class Autocomplete {
                     selectElement.selectedIndex = 0;
                 }
 
-                selectElement.dispatchEvent(new Event("change"));
+                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
 
@@ -75,7 +80,7 @@ class Autocomplete {
                     selectElement.selectedIndex = selectElement.options.length - 1;
                 }
 
-                selectElement.dispatchEvent(new Event("change"));
+                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
             } else if (e.code === "Escape") {
                 // Close the option menu on Escape key
                 e.preventDefault();
@@ -184,7 +189,8 @@ class Autocomplete {
                 for (const addedNode of mutation.addedNodes) {
                     if (!(addedNode instanceof HTMLSelectElement) || addedNode.dataset.toggle !== "autocomplete") continue;
 
-                    new Autocomplete(addedNode);
+                    // Skip initialization if component has already been initialized before detection.
+                    if (!this.autocompletes.has(addedNode)) new Autocomplete(addedNode);
                 }
 
                 for (const removedNode of mutation.removedNodes) {
@@ -210,6 +216,11 @@ class Autocomplete {
     }
 
     show() {
+        // First hide all other menu mocks, since only one needs to be shown at one time.
+        for (const [ _, autocomplete ] of Autocomplete.autocompletes) {
+            autocomplete.hide();
+        }
+
         this.autocompleteMenuMock.classList.remove("hidden");
         this.positionMenu();
 
@@ -243,6 +254,7 @@ class Autocomplete {
 
         // Remove the mocks from the DOM tree and the autocomplete collection.
         this.autocompleteWrapper.remove();
+        this.autocompleteMenuMock.remove();
         Autocomplete.autocompletes.delete(this.selectElement);
 
         // Show the original select element
@@ -279,6 +291,8 @@ class Autocomplete {
             this.autocompleteInputMock.title = "";
             this.selectedMenuOption = null;
         }
+
+        this.autocompleteInputMock.dispatchEvent(new Event("change"));
     }
 
     private filterAutocompleteMenu(value: string, deselectIfEmpty: boolean = true) {
@@ -317,7 +331,7 @@ class Autocomplete {
                 option.selected = true;
 
                 // Fire a change event manually because simply selecting the option doesn't fire one.
-                this.selectElement.dispatchEvent(new Event("change"));
+                this.selectElement.dispatchEvent(new Event("change", { bubbles: true }));
 
                 // Show the option mock.
                 this.autocompleteMenuMock.children[i].classList.remove("hidden");
@@ -359,7 +373,8 @@ class Autocomplete {
 
         let autocompleteInputMock = Redom.el("input.autocomplete-input", {
             type: "text",
-            disabled: this.selectElement.disabled
+            disabled: this.selectElement.disabled,
+            placeholder: this.selectElement.dataset.autocompletePlaceholder
         }) as HTMLInputElement;
         Redom.mount(autocompleteWrapper, autocompleteInputMock);
         this.autocompleteInputMock = autocompleteInputMock;
@@ -373,10 +388,9 @@ class Autocomplete {
         // Create a button that shows all options when clicked, positioned middle right of the input mock.
         let showAllOptionsButton = Redom.el("button.autocomplete-menu-toggle", {
             style: {
-                position: "absolute",
-                right: "0.5rem",
-                top: "27%"
+                position: "absolute"
             },
+            tabIndex: -1,
             type: "button",
             title: "Show all"
         }) as HTMLButtonElement;
@@ -391,6 +405,18 @@ class Autocomplete {
             })
             Redom.mount(showAllOptionsButton, selectedTickImage);
         }
+
+        // Apply the custom classes provided by the select element's configuration.
+        if (this.selectElement.dataset.autocompleteWrapperClass)
+            autocompleteWrapper.classList.add(this.selectElement.dataset.autocompleteWrapperClass);
+        if (this.selectElement.dataset.autocompleteInputClass)
+            autocompleteInputMock.classList.add(this.selectElement.dataset.autocompleteInputClass);
+        if (this.selectElement.dataset.autocompleteMenuClass)
+            autocompleteMenuMock.classList.add(this.selectElement.dataset.autocompleteMenuClass);
+        if (this.selectElement.dataset.autocompleteShowAllButtonClass)
+            showAllOptionsButton.classList.add(this.selectElement.dataset.autocompleteShowAllButtonClass);
+        if (this.selectElement.dataset.autocompleteShowAllButtonClass)
+            showAllOptionsButton.classList.add(this.selectElement.dataset.autocompleteShowAllButtonClass);
 
         // Generate the option elements in the dropdown
         this.generateAutocompleteMenuChildren();
@@ -417,6 +443,10 @@ class Autocomplete {
                 });
                 Redom.mount(autocompleteMenuItemMock, selectedTickImage);
             }
+
+            // Apply the custom class provided by the select element's configuration.
+            if (this.selectElement.dataset.autocompleteOptionClass)
+                autocompleteMenuItemMock.classList.add(this.selectElement.dataset.autocompleteOptionClass);
         }
     }
 

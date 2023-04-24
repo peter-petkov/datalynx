@@ -87,6 +87,8 @@
 .autocomplete-menu-toggle {
     background-color: transparent;
     border: none;
+    right: 0.5rem;
+    top: 27%;
 }
 
 .autocomplete-menu-toggle:hover {
