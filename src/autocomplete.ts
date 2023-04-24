@@ -44,6 +44,7 @@ class Autocomplete {
                 // since showing only 1 option might not be so useful. Manually typing should still filter the options.
                 this.filterAutocompleteMenu("", false);
                 this.show();
+                this.selectedMenuOption?.scrollIntoView({ block: "nearest" });
             }
         });
 
@@ -235,6 +236,11 @@ class Autocomplete {
             ? new CustomEvent("hide.autocomplete")
             : new CustomEvent("show.autocomplete");
         this.autocompleteMenuMock.dispatchEvent(customEvent);
+    }
+
+    input(value: string = "") {
+        this.filterAutocompleteMenu(value);
+        this.positionMenu();
     }
 
     destroy() {
