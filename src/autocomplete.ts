@@ -1,5 +1,3 @@
-import * as Redom from "redom";
-
 class Autocomplete {
     private static autocompletes = new Map<HTMLElement, Autocomplete>();
 
@@ -12,6 +10,7 @@ class Autocomplete {
     private selectElementOptionsChangeMutationObserver: MutationObserver;
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
+    private hidden: boolean = true;
 
     constructor(selectElement: HTMLSelectElement) {
         if (Autocomplete.autocompletes.has(selectElement)) return;
@@ -24,8 +23,8 @@ class Autocomplete {
         this.selectElement["autocompleteInput"] = this.autocompleteInputMock as HTMLInputElement;
 
         // Autocompletes must start out empty and then get selected via the UI.
-        selectElement.selectedIndex = -1;
-        this.updateAutocompleteMenu();
+        // selectElement.selectedIndex = -1;
+        // this.updateAutocompleteMenu();
 
         // If the hidden select element somehow gets focus, move that focus to the input mock
         // and open the dropdown mock, filtering the options if the input has any value.
@@ -42,9 +41,12 @@ class Autocomplete {
             if ([ ...this.autocompleteMenuMock.children ].some(c => !c.classList.contains("hidden"))) {
                 // If the user manually focuses the input mock, we want to show all the options available,
                 // since showing only 1 option might not be so useful. Manually typing should still filter the options.
-                this.filterAutocompleteMenu("", false);
-                this.show();
-                this.selectedMenuOption?.scrollIntoView({ block: "nearest" });
+                // this.filterAutocompleteMenu(""/*, false*/);
+
+                this.positionAutocompleteMenu();
+                if (this.hidden) this.show();
+
+                this.selectedMenuOption?.scrollIntoView({ block: "center" });
             }
         });
 
@@ -66,7 +68,7 @@ class Autocomplete {
                     selectElement.selectedIndex = 0;
                 }
 
-                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+                selectElement.dispatchEvent(new Event("change"));
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
 
@@ -81,7 +83,7 @@ class Autocomplete {
                     selectElement.selectedIndex = selectElement.options.length - 1;
                 }
 
-                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+                selectElement.dispatchEvent(new Event("change"));
             } else if (e.code === "Escape") {
                 // Close the option menu on Escape key
                 e.preventDefault();
@@ -95,25 +97,61 @@ class Autocomplete {
 
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the autocomplete menu.
-        this.listeners.selectElementChangeListener = () => this.updateAutocompleteMenu();
+        this.listeners.selectElementChangeListener = () => {
+            console.time("test");
+            this.updateAutocompleteInput(this.selectElement.value);
+            this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
+
+            this.updateAutocompleteMenu(this.selectElement.selectedIndex);
+            this.positionAutocompleteMenu();
+            if (this.hidden) this.show();
+            console.timeEnd("test");
+        };
         selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
 
         // When the user inputs a value to the autocomplete input, filter the option menu mock
         // to only show options that match (partially or fully) the typed value.
-        this.autocompleteInputMock.addEventListener("input", () => {
+        const autocompleteInputMockListener = (e) => {
+            console.time("test");
+            let matchingOptionIndex = -1;
+            for (const option of this.selectElement.options) {
+                if (option.value === (<HTMLInputElement>e.target).value) {
+                    matchingOptionIndex = option.index;
+                    break;
+                }
+            }
+
+            this.updateSelectElement(matchingOptionIndex);
+
+            this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
+
             this.filterAutocompleteMenu(this.autocompleteInputMock.value);
-            this.positionMenu();
-        });
+            this.updateAutocompleteMenu(this.selectElement.selectedIndex);
+
+            this.positionAutocompleteMenu();
+            if (this.hidden) this.show();
+            console.timeEnd("test");
+        }
+        this.autocompleteInputMock.addEventListener("input", autocompleteInputMockListener);
+        this.autocompleteInputMock.addEventListener("change", autocompleteInputMockListener);
 
         // When the user clicks on an option in the autocomplete menu mock, select the option in the select element
         // and set the input mock value to it.
         this.autocompleteMenuMock.addEventListener("click", e => {
+            console.time("test");
             let target = (<HTMLElement>e.target).closest(".autocomplete-menu-item") as HTMLElement;
             if (!target) return;
 
             // Also filter the options to the new value.
-            let selectedOption = this.selectElement.options[[ ...this.autocompleteMenuMock.children ].indexOf(target)];
-            this.filterAutocompleteMenu(selectedOption.textContent);
+            let selectedIndex = [ ...this.autocompleteMenuMock.children ].indexOf(target);
+
+            this.updateSelectElement(selectedIndex);
+
+            this.updateAutocompleteInput(this.selectElement.value);
+            this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
+
+            this.updateAutocompleteMenu(selectedIndex);
+            console.timeEnd("test");
         });
 
         // When the user clicks somewhere else, close the option menu mock.
@@ -136,13 +174,17 @@ class Autocomplete {
         document.addEventListener("click", this.listeners.documentClickListener);
 
         // Reposition the option menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
-        this.listeners.documentResizeListener = () => this.positionMenu();
+        this.listeners.documentResizeListener = () => this.positionAutocompleteMenu();
         window.addEventListener("resize", this.listeners.documentResizeListener);
 
         // When the user clicks on the "Show all" button, clear the filter and show all entries.
         this.showAllOptionsButton.addEventListener("click", () => {
-            this.filterAutocompleteMenu("", false);
-            this.positionMenu();
+            this.filterAutocompleteMenu("");
+
+            this.positionAutocompleteMenu();
+            if (this.hidden) this.show();
+
+            this.selectedMenuOption?.scrollIntoView({ block: "center" });
         });
 
         // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
@@ -212,6 +254,7 @@ class Autocomplete {
 
     hide() {
         this.autocompleteMenuMock.classList.add("hidden");
+        this.hidden = true;
 
         this.autocompleteMenuMock.dispatchEvent(new CustomEvent("hide.autocomplete"));
     }
@@ -219,28 +262,23 @@ class Autocomplete {
     show() {
         // First hide all other menu mocks, since only one needs to be shown at one time.
         for (const [ _, autocomplete ] of Autocomplete.autocompletes) {
-            autocomplete.hide();
+            if (!autocomplete.hidden) autocomplete.hide();
         }
 
         this.autocompleteMenuMock.classList.remove("hidden");
-        this.positionMenu();
+        this.hidden = false;
 
         this.autocompleteMenuMock.dispatchEvent(new CustomEvent("show.autocomplete"));
     }
 
     toggle() {
         this.autocompleteMenuMock.classList.toggle("hidden");
-        this.positionMenu();
+        this.positionAutocompleteMenu();
 
         let customEvent = this.autocompleteMenuMock.classList.contains("hidden")
             ? new CustomEvent("hide.autocomplete")
             : new CustomEvent("show.autocomplete");
         this.autocompleteMenuMock.dispatchEvent(customEvent);
-    }
-
-    input(value: string = "") {
-        this.filterAutocompleteMenu(value);
-        this.positionMenu();
     }
 
     destroy() {
@@ -277,31 +315,68 @@ class Autocomplete {
         this.listeners = null;
     }
 
-    private updateAutocompleteMenu() {
-        console.debug(`Update menu's options.`);
-
-        // Remove the currently selected option mock.
-        this.selectedMenuOption?.classList.remove("selected");
-
-        if (this.selectElement.selectedIndex >= 0) {
-            // Find the option mock that matches the select element's selected option.
-            this.selectedMenuOption = (<HTMLLIElement>this.autocompleteMenuMock.children[this.selectElement.selectedIndex]);
-            this.selectedMenuOption.classList.add("selected");
-            // Scroll the dropdown mock to the selected option mock.
-            this.selectedMenuOption.scrollIntoView({ block: "nearest" });
-            // Set the input's value to the currently selected option.
-            this.autocompleteInputMock.value = this.selectedMenuOption.textContent;
-            this.autocompleteInputMock.title = this.selectedMenuOption.title;
-        } else {
-            this.autocompleteInputMock.value = "";
-            this.autocompleteInputMock.title = "";
-            this.selectedMenuOption = null;
-        }
-
-        this.autocompleteInputMock.dispatchEvent(new Event("change"));
+    private updateSelectElement(selectedOptionIndex: number) {
+        this.selectElement.selectedIndex = selectedOptionIndex;
     }
 
-    private filterAutocompleteMenu(value: string, deselectIfEmpty: boolean = true) {
+    private updateAutocompleteInput(value: string) {
+        if (!value === null || value === undefined) value = "";
+
+        this.autocompleteInputMock.value = value?.toString();
+    }
+
+    private updateAutocompleteInputTitle(value: string) {
+        if (!value === null || value === undefined) value = "";
+
+        this.autocompleteInputMock.title = value?.toString();
+    }
+
+    private updateAutocompleteMenu(selectedOptionIndex: number) {
+        console.debug(`Update menu's options.`);
+
+        if (selectedOptionIndex >= 0) {
+            // Find the option mock that matches the select element's selected option.
+            let newOption = (<HTMLLIElement>this.autocompleteMenuMock.children[selectedOptionIndex]);
+
+            if (this.selectedMenuOption !== newOption) {
+                // Remove the currently selected option mock.
+                this.selectedMenuOption?.classList.remove("selected");
+                newOption.classList.add("selected");
+
+                // Scroll the dropdown mock to the selected option mock.
+                newOption.scrollIntoView({ block: "center" });
+
+                this.selectedMenuOption = newOption;
+            }
+        } else {
+            this.selectedMenuOption?.classList.remove("selected");
+            this.selectedMenuOption = null;
+        }
+    }
+
+    // private updateAutocompleteMenu() {
+    //     console.debug(`Update menu's options.`);
+    //
+    //     // Remove the currently selected option mock.
+    //     this.selectedMenuOption?.classList.remove("selected");
+    //
+    //     if (this.selectElement.selectedIndex >= 0) {
+    //         // Find the option mock that matches the select element's selected option.
+    //         this.selectedMenuOption = (<HTMLLIElement>this.autocompleteMenuMock.children[this.selectElement.selectedIndex]);
+    //         this.selectedMenuOption.classList.add("selected");
+    //         // Scroll the dropdown mock to the selected option mock.
+    //         this.selectedMenuOption.scrollIntoView({ block: "center" });
+    //         // Set the input's value to the currently selected option.
+    //         this.autocompleteInputMock.value = this.selectedMenuOption.textContent;
+    //         this.autocompleteInputMock.title = this.selectedMenuOption.title;
+    //     } else {
+    //         this.autocompleteInputMock.value = "";
+    //         this.autocompleteInputMock.title = "";
+    //         this.selectedMenuOption = null;
+    //     }
+    // }
+
+    private filterAutocompleteMenu(value: string/*, deselectIfEmpty: boolean = true*/) {
         console.debug(`Filtering menu.`);
 
         // If input mock value is empty, show all the options.
@@ -310,21 +385,21 @@ class Autocomplete {
                 menuItemMock.classList.remove("hidden");
             }
 
-            if (deselectIfEmpty) {
-                // Input value is empty, so the select shouldn't have any option selected either.
-                this.selectElement.selectedIndex = -1;
-                // Unselect the previously selected option (if present).
-                this.selectedMenuOption?.classList.remove("selected");
-                this.selectedMenuOption = null;
-            }
+            // if (deselectIfEmpty) {
+            //     // Input value is empty, so the select shouldn't have any option selected either.
+            //     this.selectElement.selectedIndex = -1;
+            //     // Unselect the previously selected option (if present).
+            //     this.selectedMenuOption?.classList.remove("selected");
+            //     this.selectedMenuOption = null;
+            // }
 
-            this.autocompleteMenuMock.classList.remove("hidden");
+            // this.autocompleteMenuMock.classList.remove("hidden");
 
             return;
         }
 
-        let hasAtLeastOneVisibleOption = false;
-        let isMatchingOption = false;
+        // let hasAtLeastOneVisibleOption = false;
+        // let isMatchingOption = false;
         // Iterate the available options
         for (let i = 0; i < this.selectElement.options.length; i++) {
             const option = this.selectElement.options[i];
@@ -334,37 +409,55 @@ class Autocomplete {
             let normalizedText = value.toLowerCase().trim();
             if (option.textContent === value) {
                 // Case in which we have a perfectly matching option.
-                option.selected = true;
+                // option.selected = true;
 
                 // Fire a change event manually because simply selecting the option doesn't fire one.
-                this.selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+                // this.selectElement.dispatchEvent(new Event("change"));
 
                 // Show the option mock.
                 this.autocompleteMenuMock.children[i].classList.remove("hidden");
 
-                hasAtLeastOneVisibleOption = true;
-                isMatchingOption = true;
+                // hasAtLeastOneVisibleOption = true;
+                // isMatchingOption = true;
             } else if (normalizedOptionText.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
                 this.autocompleteMenuMock.children[i].classList.remove("hidden");
-                hasAtLeastOneVisibleOption = true;
+                // hasAtLeastOneVisibleOption = true;
             } else {
                 // Case in which we have a non-matching option and must hide it.
                 this.autocompleteMenuMock.children[i].classList.add("hidden");
             }
         }
 
-        if (hasAtLeastOneVisibleOption) {
-            this.autocompleteMenuMock.classList.remove("hidden");
-        } else {
-            this.autocompleteMenuMock.classList.add("hidden");
-        }
+        // if (hasAtLeastOneVisibleOption) {
+        //     this.autocompleteMenuMock.classList.remove("hidden");
+        // } else {
+        //     this.autocompleteMenuMock.classList.add("hidden");
+        // }
 
         // If no options match, remove the selection.
-        if (!isMatchingOption) {
-            this.selectElement.selectedIndex = -1;
-            this.selectedMenuOption?.classList.remove("selected");
+        // if (!isMatchingOption) {
+        // this.selectElement.selectedIndex = -1;
+        // this.selectedMenuOption?.classList.remove("selected");
+        // }
+    }
+
+    private positionAutocompleteMenu() {
+        let inputRect = this.autocompleteInputMock.getBoundingClientRect();
+        let menuRect = this.autocompleteMenuMock.getBoundingClientRect();
+
+        if (inputRect.top + inputRect.height + menuRect.height + 4 > window.innerHeight) {
+            // If there isn't enough space to position the menu below the input mock, position it above it instead.
+            this.autocompleteMenuMock.style.top = `${inputRect.top - menuRect.height - 10 + window.scrollY}px`;
+        } else {
+            // Else position the menu directly below the input element, with a little margin.
+            this.autocompleteMenuMock.style.top = `${inputRect.top + inputRect.height + window.scrollY}px`;
         }
+
+        console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
+        this.autocompleteMenuMock.style.width = `${inputRect.width}px`;
+        // Set the option menu's width to the input's width.
+        this.autocompleteMenuMock.style.left = `${inputRect.left}px`;
     }
 
     private generateAutocompleteMock() {
@@ -384,6 +477,9 @@ class Autocomplete {
         }) as HTMLInputElement;
         Redom.mount(autocompleteWrapper, autocompleteInputMock);
         this.autocompleteInputMock = autocompleteInputMock;
+        if (this.selectElement.selectedIndex >= 0) {
+            autocompleteInputMock.value = this.selectElement.selectedOptions[0]?.value;
+        }
 
         // Create the dropdown and insert it at the end of the body element,
         // since if placed in an overflowing container it might become partly hidden.
@@ -440,6 +536,10 @@ class Autocomplete {
                     title: option.title
                 });
             Redom.mount(this.autocompleteMenuMock, autocompleteMenuItemMock);
+            if (option.selected) {
+                autocompleteMenuItemMock.classList.add("selected");
+                this.selectedMenuOption = autocompleteMenuItemMock;
+            }
 
             // If a selected image source is provided, create an image for selected options.
             if (this.selectElement.dataset.selectedItemTickSrc) {
@@ -454,24 +554,6 @@ class Autocomplete {
             if (this.selectElement.dataset.autocompleteOptionClass)
                 autocompleteMenuItemMock.classList.add(this.selectElement.dataset.autocompleteOptionClass);
         }
-    }
-
-    private positionMenu() {
-        let inputRect = this.autocompleteInputMock.getBoundingClientRect();
-        let menuRect = this.autocompleteMenuMock.getBoundingClientRect();
-
-        if (inputRect.top + inputRect.height + menuRect.height + 4 > window.innerHeight) {
-            // If there isn't enough space to position the menu below the input mock, position it above it instead.
-            this.autocompleteMenuMock.style.top = `${inputRect.top - menuRect.height - 10 + window.scrollY}px`;
-        } else {
-            // Else position the menu directly below the input element, with a little margin.
-            this.autocompleteMenuMock.style.top = `${inputRect.top + inputRect.height + window.scrollY}px`;
-        }
-
-        console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
-        this.autocompleteMenuMock.style.width = `${inputRect.width}px`;
-        // Set the option menu's width to the input's width.
-        this.autocompleteMenuMock.style.left = `${inputRect.left}px`;
     }
 }
 
