@@ -44,7 +44,7 @@ class Autocomplete {
                 this.positionAutocompleteMenu();
                 if (this.hidden) this.show();
 
-                this.selectedMenuOption?.scrollIntoView({ block: "center" });
+                this.selectedMenuOption?.scrollIntoView({ block: "nearest", });
             }
         });
 
@@ -109,7 +109,7 @@ class Autocomplete {
         // to only show options that match (partially or fully) the typed value.
         const autocompleteInputMockListener = (e) => {
             let matchingOptionIndex = -1;
-            for (const option of this.selectElement.options as HTMLOptionElement[]) {
+            for (const option of this.selectElement.options) {
                 if (option.value === (<HTMLInputElement>e.target).value) {
                     matchingOptionIndex = option.index;
                     break;
@@ -144,6 +144,8 @@ class Autocomplete {
             this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateAutocompleteMenu(selectedIndex);
+
+            this.selectElement.dispatchEvent(new CustomEvent("select.autocomplete", { bubbles: true }));
         });
 
         // When the user clicks somewhere else, close the option menu mock.
@@ -176,7 +178,7 @@ class Autocomplete {
             this.positionAutocompleteMenu();
             if (this.hidden) this.show();
 
-            this.selectedMenuOption?.scrollIntoView({ block: "center" });
+            this.selectedMenuOption?.scrollIntoView({ block: "nearest" });
         });
 
         // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
@@ -336,7 +338,7 @@ class Autocomplete {
                 newOption.classList.add("selected");
 
                 // Scroll the dropdown mock to the selected option mock.
-                newOption.scrollIntoView({ block: "center" });
+                newOption.scrollIntoView({ block: "nearest" });
 
                 this.selectedMenuOption = newOption;
             }
@@ -410,7 +412,7 @@ class Autocomplete {
         let autocompleteInputMock = Redom.el("input.autocomplete-input", {
             type: "text",
             disabled: this.selectElement.disabled,
-            placeholder: this.selectElement.dataset.autocompletePlaceholder
+            placeholder: this.selectElement.dataset.autocompletePlaceholder ?? ""
         }) as HTMLInputElement;
         Redom.mount(autocompleteWrapper, autocompleteInputMock);
         this.autocompleteInputMock = autocompleteInputMock;
@@ -464,7 +466,7 @@ class Autocomplete {
     private generateAutocompleteMenuChildren() {
         Redom.setChildren(this.autocompleteMenuMock, []);
 
-        for (const option of this.selectElement.options as HTMLOptionElement[]) {
+        for (const option of this.selectElement.options) {
             if (!option.textContent || !option.value) continue;
 
             // Create an option element with its tick box, which will remain hidden until the element is selected.
