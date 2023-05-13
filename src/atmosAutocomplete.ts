@@ -41,8 +41,8 @@ export default class AtmosAutocomplete {
                 // since showing only 1 option might not be so useful. Manually typing should still filter the options.
                 // this.filterAutocompleteMenu(""/*, false*/);
 
-                this.positionAutocompleteMenu();
                 if (this.hidden) this.show();
+                this.positionAutocompleteMenu();
 
                 this.selectedMenuOption?.scrollIntoView({ block: "nearest", });
             }
@@ -100,8 +100,8 @@ export default class AtmosAutocomplete {
             this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateAutocompleteMenu(this.selectElement.selectedIndex);
-            this.positionAutocompleteMenu();
             if (this.hidden) this.show();
+            this.positionAutocompleteMenu();
         };
         selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
 
@@ -125,8 +125,8 @@ export default class AtmosAutocomplete {
             this.filterAutocompleteMenu(this.autocompleteInputMock.value);
             this.updateAutocompleteMenu(this.selectElement.selectedIndex);
 
-            this.positionAutocompleteMenu();
             if (this.hidden) this.show();
+            this.positionAutocompleteMenu();
         }
         this.autocompleteInputMock.addEventListener("input", autocompleteInputMockListener);
         this.autocompleteInputMock.addEventListener("change", autocompleteInputMockListener);
@@ -177,8 +177,8 @@ export default class AtmosAutocomplete {
         this.showAllOptionsButton.addEventListener("click", () => {
             this.filterAutocompleteMenu("");
 
-            this.positionAutocompleteMenu();
             if (this.hidden) this.show();
+            this.positionAutocompleteMenu();
 
             this.selectedMenuOption?.scrollIntoView({ block: "nearest" });
         });
@@ -203,6 +203,7 @@ export default class AtmosAutocomplete {
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
             this.autocompleteInputMock.disabled = selectElement.disabled;
+            this.showAllOptionsButton.disabled = selectElement.disabled;
         });
         this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
             attributes: true,
@@ -384,29 +385,32 @@ export default class AtmosAutocomplete {
     }
 
     private positionAutocompleteMenu() {
+        this.autocompleteMenuMock.style.removeProperty("height");
+
         let inputRect = this.autocompleteInputMock.getBoundingClientRect();
         let menuRect = this.autocompleteMenuMock.getBoundingClientRect();
 
-        if (inputRect.top + inputRect.height + menuRect.height + 4 > window.innerHeight) {
+        if (inputRect.bottom + menuRect.height + 4 > window.innerHeight && inputRect.top - 4 < menuRect.height) {
+            // If the menu can't be positioned either on top or bottom of the input mock,
+            // position it below the input and limit its height.
+            this.autocompleteMenuMock.style.top = `${inputRect.bottom + window.scrollY}px`;
+            this.autocompleteMenuMock.style.height = `${window.innerHeight - inputRect.bottom - 4}px`;
+        } else if (inputRect.bottom + menuRect.height + 4 > window.innerHeight) {
             // If there isn't enough space to position the menu below the input mock, position it above it instead.
-            this.autocompleteMenuMock.style.top = `${inputRect.top - menuRect.height - 10 + window.scrollY}px`;
+            this.autocompleteMenuMock.style.top = `${inputRect.top - menuRect.height - 8 + window.scrollY}px`;
         } else {
             // Else position the menu directly below the input element, with a little margin.
-            this.autocompleteMenuMock.style.top = `${inputRect.top + inputRect.height + window.scrollY}px`;
+            this.autocompleteMenuMock.style.top = `${inputRect.bottom + window.scrollY}px`;
         }
 
         console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
-        this.autocompleteMenuMock.style.width = `${inputRect.width}px`;
+        this.autocompleteMenuMock.style.minWidth = `${inputRect.width}px`;
         // Set the option menu's width to the input's width.
         this.autocompleteMenuMock.style.left = `${inputRect.left}px`;
     }
 
     private generateAutocompleteMock() {
-        let autocompleteWrapper = Redom.el("div.autocomplete-wrapper", {
-            style: {
-                position: "relative"
-            }
-        });
+        let autocompleteWrapper = Redom.el("div.autocomplete-wrapper");
         // Insert the autocomplete mock right after the select.
         this.selectElement.insertAdjacentElement("afterend", autocompleteWrapper);
         this.autocompleteWrapper = autocompleteWrapper;
@@ -430,11 +434,9 @@ export default class AtmosAutocomplete {
 
         // Create a button that shows all options when clicked, positioned middle right of the input mock.
         let showAllOptionsButton = Redom.el("button.autocomplete-menu-toggle", {
-            style: {
-                position: "absolute"
-            },
             tabIndex: -1,
             type: "button",
+            disabled: this.selectElement.disabled,
             title: "Show all"
         }) as HTMLButtonElement;
         Redom.mount(autocompleteWrapper, showAllOptionsButton);
