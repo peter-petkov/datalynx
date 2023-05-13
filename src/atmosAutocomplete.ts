@@ -112,8 +112,7 @@ export default class AtmosAutocomplete {
 
             this.updateAutocompleteMenu(this.selectElement.selectedIndex);
 
-            if (this.hidden) this.show();
-            else if (!this.visibleOptions) this.hide();
+            if (!this.visibleOptions) this.hide();
 
             this.positionAutocompleteMenu();
         };
@@ -176,7 +175,7 @@ export default class AtmosAutocomplete {
                 // Disabled for now until multiselect is implemented.
                 // return;
                 if (target.closest(".autocomplete-menu-item.disabled")) {
-                    // Don't close the menu if the user clicks on a disabled option. 
+                    // Don't close the menu if the user clicks on a disabled option.
                     return;
                 }
             } else if (target.closest(".autocomplete-input") === this.autocompleteInputMock) {
@@ -530,6 +529,8 @@ export default class AtmosAutocomplete {
             if (this.selectElement.dataset.autocompleteOptionClass)
                 autocompleteMenuItemMock.classList.add(this.selectElement.dataset.autocompleteOptionClass);
         }
+
+        this.visibleOptions = this.selectElement.options.length;
     }
 }
 
