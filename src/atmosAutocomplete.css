@@ -61,5 +61,5 @@
 }
 
 .autocomplete-menu-item:not(.selected) .autocomplete-menu-item-tick {
-    display: none;
+    visibility: hidden;
 }

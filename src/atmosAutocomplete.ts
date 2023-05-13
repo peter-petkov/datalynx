@@ -441,7 +441,7 @@ export default class AtmosAutocomplete {
         Redom.mount(autocompleteWrapper, autocompleteInputMock);
         this.autocompleteInputMock = autocompleteInputMock;
         if (this.selectElement.selectedIndex >= 0) {
-            this.updateAutocompleteInput(this.selectElement.selectedOptions[0]?.textContent);
+            this.updateAutocompleteInput(this.selectElement.selectedOptions[0]?.textContent?.trim());
         }
 
         // Create the dropdown and insert it at the end of the body element,
@@ -489,8 +489,6 @@ export default class AtmosAutocomplete {
         Redom.setChildren(this.autocompleteMenuMock, []);
 
         for (const option of this.selectElement.options) {
-            if (!option.textContent || !option.value) continue;
-
             // Create an option element with its tick box, which will remain hidden until the element is selected.
             let autocompleteMenuItemMock = Redom.el("li.autocomplete-menu-item",
                 Redom.el("span.autocomplete-menu-item-text", option.textContent), {
@@ -503,12 +501,12 @@ export default class AtmosAutocomplete {
             }
 
             // If a selected image source is provided, create an image for selected options.
+            let selectedTickImage = Redom.el("img.autocomplete-menu-item-tick", {
+                alt: option.textContent || option.value ? "Selected" : "",
+            }) as HTMLImageElement;
+            Redom.mount(autocompleteMenuItemMock, selectedTickImage);
             if (this.selectElement.dataset.selectedItemTickSrc) {
-                let selectedTickImage = Redom.el("img.autocomplete-menu-item-tick", {
-                    src: this.selectElement.dataset.selectedItemTickSrc,
-                    alt: "Selected",
-                });
-                Redom.mount(autocompleteMenuItemMock, selectedTickImage);
+                selectedTickImage.src = this.selectElement.dataset.selectedItemTickSrc;
             }
 
             // Apply the custom class provided by the select element's configuration.
