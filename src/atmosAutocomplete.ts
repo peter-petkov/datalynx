@@ -12,8 +12,10 @@ export default class AtmosAutocomplete {
     private selectElementOptionsChangeMutationObserver: MutationObserver;
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
-    private hidden: boolean = true;
     private visibleOptions: number;
+    private get hidden() {
+        return this.autocompleteMenuMock.classList.contains("hidden");
+    }
 
     constructor(selectElement: HTMLSelectElement) {
         if (AtmosAutocomplete.autocompletes.has(selectElement)) return;
@@ -272,7 +274,6 @@ export default class AtmosAutocomplete {
 
     hide() {
         this.autocompleteMenuMock.classList.add("hidden");
-        this.hidden = true;
 
         this.autocompleteMenuMock.dispatchEvent(new CustomEvent("hide.autocomplete"));
     }
@@ -286,7 +287,6 @@ export default class AtmosAutocomplete {
         }
 
         this.autocompleteMenuMock.classList.remove("hidden");
-        this.hidden = false;
 
         this.autocompleteMenuMock.dispatchEvent(new CustomEvent("show.autocomplete"));
     }
