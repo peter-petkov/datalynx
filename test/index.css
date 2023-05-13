@@ -1,3 +1,4 @@
+
 *, *:before, *:after {
     box-sizing: border-box;
 }
@@ -32,7 +33,7 @@ label {
     line-height: 1.25rem;
     font-weight: 400;
     color: rgb(15 23 42);
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
     margin-top: 0.5rem;
 }
 
@@ -120,8 +121,4 @@ label {
 .autocomplete-toggle-caret {
     height: 0.8rem;
     width: auto;
-}
-
-.hidden {
-    display: none !important;
 }

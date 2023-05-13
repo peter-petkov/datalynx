@@ -1,0 +1,3 @@
+interface HTMLSelectElement {
+    autocompleteInput: HTMLInputElement;
+}

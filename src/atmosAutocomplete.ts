@@ -1,6 +1,6 @@
 import * as Redom from "redom";
 
-class AtmosAutocomplete {
+export default class AtmosAutocomplete {
     private static autocompletes = new Map<HTMLElement, AtmosAutocomplete>();
 
     private selectElement: HTMLSelectElement;
