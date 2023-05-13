@@ -19,6 +19,8 @@ export default class AtmosAutocomplete {
         if (AtmosAutocomplete.autocompletes.has(selectElement)) return;
         this.selectElement = selectElement;
 
+        selectElement.style.display = "none";
+
         // First, generate the extra elements.
         this.generateAutocompleteMock();
 
@@ -63,7 +65,9 @@ export default class AtmosAutocomplete {
                 do {
                     selectElement.selectedIndex++;
                     if (selectElement.selectedIndex === -1) selectElement.selectedIndex++;
-                } while (selectElement.selectedIndex >= 0 && this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("hidden"))
+                } while (selectElement.selectedIndex >= 0 &&
+                (this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("hidden") ||
+                    this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("disabled")))
 
                 if (selectElement.selectedIndex < 0) {
                     selectElement.selectedIndex = 0;
@@ -78,7 +82,9 @@ export default class AtmosAutocomplete {
                 do {
                     selectElement.selectedIndex -= 1;
                     if (selectElement.selectedIndex === -1) selectElement.selectedIndex = selectElement.options.length - 1;
-                } while (selectElement.selectedIndex >= 0 && this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("hidden"))
+                } while (selectElement.selectedIndex >= 0 &&
+                (this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("hidden") ||
+                    this.autocompleteMenuMock.children[selectElement.selectedIndex].classList.contains("disabled")))
 
                 if (selectElement.selectedIndex < 0) {
                     selectElement.selectedIndex = selectElement.options.length - 1;
@@ -145,6 +151,8 @@ export default class AtmosAutocomplete {
             let target = (<HTMLElement>e.target).closest(".autocomplete-menu-item") as HTMLElement;
             if (!target) return;
 
+            if (target.classList.contains("disabled")) return;
+
             // Also filter the options to the new value.
             let selectedIndex = [ ...this.autocompleteMenuMock.children ].indexOf(target);
 
@@ -165,6 +173,10 @@ export default class AtmosAutocomplete {
                 // Don't close the menu if the user clicks inside of it.
                 // Disabled for now until multiselect is implemented.
                 // return;
+                if (target.closest(".autocomplete-menu-item.disabled")) {
+                    // Don't close the menu if the user clicks on a disabled option. 
+                    return;
+                }
             } else if (target.closest(".autocomplete-input") === this.autocompleteInputMock) {
                 // Don't close the menu if the user clicks on the input mock.
                 return;
@@ -219,7 +231,6 @@ export default class AtmosAutocomplete {
         });
 
         this.visibleOptions = selectElement.options.length;
-        selectElement.style.display = "none";
 
         AtmosAutocomplete.autocompletes.set(selectElement, this);
     }
@@ -498,6 +509,10 @@ export default class AtmosAutocomplete {
             if (option.selected) {
                 autocompleteMenuItemMock.classList.add("selected");
                 this.selectedMenuOption = autocompleteMenuItemMock as HTMLLIElement;
+            }
+
+            if (option.disabled) {
+                autocompleteMenuItemMock.classList.add("disabled");
             }
 
             // If a selected image source is provided, create an image for selected options.

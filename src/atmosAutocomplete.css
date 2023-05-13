@@ -47,6 +47,12 @@
     align-items: center;
 }
 
+.autocomplete-menu-item.disabled {
+    cursor: not-allowed;
+    /*background-color: #e6e6e6;*/
+    color: #808080;
+}
+
 .autocomplete-menu-item:hover {
     background-color: #e6e6e6;
 }
