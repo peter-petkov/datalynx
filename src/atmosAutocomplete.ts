@@ -99,6 +99,8 @@ export default class AtmosAutocomplete {
                 // Toggle the option menu on Enter key
                 e.preventDefault();
                 this.toggle();
+            } else if (e.code === "Tab") {
+                this.hide()
             }
         });
 

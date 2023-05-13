@@ -49,7 +49,6 @@
 
 .autocomplete-menu-item.disabled {
     cursor: not-allowed;
-    /*background-color: #e6e6e6;*/
     color: #808080;
 }
 
