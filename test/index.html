@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Autocomplete test</title>
+    <link rel="stylesheet" href="autocomplete.css">
+    <script type="importmap">
+        {
+            "imports": {"redom": "../node_modules/redom/esm/index.js"}
+        }
+    </script>
+</head>
+<body>
+<label>
+    Atmos Autocomplete
+    <select name="product-manufacturer" data-toggle="autocomplete" class="mt-2 form-field" data-selected-item-tick-src="./check.png" data-show-all-button-src="./caret-down.png">
+        <option value="1" title="Explanation 1">A</option>
+        <option value="2" title="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus ea expedita fuga mollitia odit, placeat quod repellendus repudiandae sunt! Asperiores cupiditate deleniti est explicabo laborum molestiae nihil quis repudiandae sapiente!">Aa</option>
+        <option value="3">B</option>
+        <option value="4">C</option>
+    </select>
+</label>
+<script type="module" src="../dist/atmosAutocomplete.js"></script>
+</body>
+</html>

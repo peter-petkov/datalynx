@@ -1,7 +1,7 @@
 import * as Redom from "redom";
 
-class Autocomplete {
-    private static autocompletes = new Map<HTMLElement, Autocomplete>();
+class AtmosAutocomplete {
+    private static autocompletes = new Map<HTMLElement, AtmosAutocomplete>();
 
     private selectElement: HTMLSelectElement;
     private autocompleteWrapper: HTMLElement;
@@ -15,14 +15,14 @@ class Autocomplete {
     private hidden: boolean = true;
 
     constructor(selectElement: HTMLSelectElement) {
-        if (Autocomplete.autocompletes.has(selectElement)) return;
-
+        if (AtmosAutocomplete.autocompletes.has(selectElement)) return;
         this.selectElement = selectElement;
 
         // First, generate the extra elements.
         this.generateAutocompleteMock();
 
-        this.selectElement["autocompleteInput"] = this.autocompleteInputMock as HTMLInputElement;
+        this.selectElement["autocompleteInput"] = this.autocompleteInputMock;
+        this.autocompleteInputMock["selectElement"] = this.selectElement;
 
         // If the hidden select element somehow gets focus, move that focus to the input mock
         // and open the dropdown mock, filtering the options if the input has any value.
@@ -66,7 +66,7 @@ class Autocomplete {
                     selectElement.selectedIndex = 0;
                 }
 
-                selectElement.dispatchEvent(new Event("change"));
+                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
 
@@ -81,7 +81,7 @@ class Autocomplete {
                     selectElement.selectedIndex = selectElement.options.length - 1;
                 }
 
-                selectElement.dispatchEvent(new Event("change"));
+                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
             } else if (e.code === "Escape") {
                 // Close the option menu on Escape key
                 e.preventDefault();
@@ -110,7 +110,9 @@ class Autocomplete {
         const autocompleteInputMockListener = (e) => {
             let matchingOptionIndex = -1;
             for (const option of this.selectElement.options) {
-                if (option.value === (<HTMLInputElement>e.target).value) {
+                // Compare text content instead of value because the two might differ and the user doesn't
+                // see the value, only the text content of the option.
+                if (option.textContent === (<HTMLInputElement>e.target).value) {
                     matchingOptionIndex = option.index;
                     break;
                 }
@@ -209,7 +211,7 @@ class Autocomplete {
 
         selectElement.style.display = "none";
 
-        Autocomplete.autocompletes.set(selectElement, this);
+        AtmosAutocomplete.autocompletes.set(selectElement, this);
     }
 
     static init() {
@@ -217,7 +219,7 @@ class Autocomplete {
 
         // Autodetect and create an autocomplete component for each select element found.
         for (const selectElement of selectElements) {
-            new Autocomplete(selectElement);
+            new AtmosAutocomplete(selectElement);
         }
 
         // Place an observer to create an autocomplete whenever a select element with an autocomplete toggle gets added.
@@ -227,13 +229,13 @@ class Autocomplete {
                     if (!(addedNode instanceof HTMLSelectElement) || addedNode.dataset.toggle !== "autocomplete") continue;
 
                     // Skip initialization if component has already been initialized before detection.
-                    if (!this.autocompletes.has(addedNode)) new Autocomplete(addedNode);
+                    if (!this.autocompletes.has(addedNode)) new AtmosAutocomplete(addedNode);
                 }
 
                 for (const removedNode of mutation.removedNodes) {
                     if (!(removedNode instanceof HTMLElement) || removedNode.dataset.toggle !== "autocomplete") continue;
 
-                    Autocomplete.get(removedNode)?.destroy();
+                    AtmosAutocomplete.get(removedNode)?.destroy();
                 }
             }
         }).observe(document, {
@@ -255,7 +257,7 @@ class Autocomplete {
 
     show() {
         // First hide all other menu mocks, since only one needs to be shown at one time.
-        for (const [ _, autocomplete ] of Autocomplete.autocompletes) {
+        for (const [ _, autocomplete ] of AtmosAutocomplete.autocompletes) {
             if (!autocomplete.hidden) autocomplete.hide();
         }
 
@@ -293,7 +295,7 @@ class Autocomplete {
         // Remove the mocks from the DOM tree and the autocomplete collection.
         this.autocompleteWrapper.remove();
         this.autocompleteMenuMock.remove();
-        Autocomplete.autocompletes.delete(this.selectElement);
+        AtmosAutocomplete.autocompletes.delete(this.selectElement);
 
         // Show the original select element
         this.selectElement.style.removeProperty("display");
@@ -417,7 +419,7 @@ class Autocomplete {
         Redom.mount(autocompleteWrapper, autocompleteInputMock);
         this.autocompleteInputMock = autocompleteInputMock;
         if (this.selectElement.selectedIndex >= 0) {
-            autocompleteInputMock.value = this.selectElement.selectedOptions[0]?.value;
+            this.updateAutocompleteInput(this.selectElement.selectedOptions[0]?.textContent);
         }
 
         // Create the dropdown and insert it at the end of the body element,
@@ -496,5 +498,5 @@ class Autocomplete {
     }
 }
 
-window["Autocomplete"] = Autocomplete;
-Autocomplete.init();
+window["AtmosAutocomplete"] = AtmosAutocomplete;
+AtmosAutocomplete.init();
