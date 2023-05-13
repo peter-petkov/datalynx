@@ -13,9 +13,6 @@ export default class AtmosAutocomplete {
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
     private visibleOptions: number;
-    private get hidden() {
-        return this.menuMock.classList.contains("hidden");
-    }
 
     constructor(selectElement: HTMLSelectElement) {
         if (AtmosAutocomplete.autocompletes.has(selectElement)) return;
@@ -235,6 +232,10 @@ export default class AtmosAutocomplete {
         AtmosAutocomplete.autocompletes.set(selectElement, this);
     }
 
+    private get hidden() {
+        return this.menuMock.classList.contains("hidden");
+    }
+
     static init() {
         let selectElements = document.querySelectorAll<HTMLSelectElement>("[data-toggle='autocomplete']");
 
@@ -298,6 +299,40 @@ export default class AtmosAutocomplete {
             ? new CustomEvent("hide.atmos-autocomplete")
             : new CustomEvent("show.atmos-autocomplete");
         this.menuMock.dispatchEvent(customEvent);
+    }
+
+    destroy() {
+        // First remove all associated event listeners on elements that will remain.
+        // The rest of the listeners will be removed when we remove the mocks.
+        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
+        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
+        document.removeEventListener("click", this.listeners.documentClickListener);
+        document.removeEventListener("resize", this.listeners.documentResizeListener);
+        for (const label of this.selectElement.labels) {
+            label.removeEventListener("click", this.listeners.labelClickListener);
+        }
+
+        // Disconnect all associated mutation observers.
+        this.selectElementOptionsChangeMutationObserver.disconnect();
+        this.selectElementAttributesChangeMutationObserver.disconnect();
+
+        // Remove the mocks from the DOM tree and the autocomplete collection.
+        this.mocksWrapper.remove();
+        this.menuMock.remove();
+        AtmosAutocomplete.autocompletes.delete(this.selectElement);
+
+        // Show the original select element
+        this.selectElement.style.removeProperty("display");
+
+        this.selectElement = null;
+        this.mocksWrapper = null;
+        this.inputMock = null;
+        this.menuMock = null;
+        this.selectedMenuItemMock = null;
+        this.showAllOptionsButton = null;
+        this.selectElementOptionsChangeMutationObserver = null;
+        this.selectElementAttributesChangeMutationObserver = null;
+        this.listeners = null;
     }
 
     private updateSelectElement(selectedOptionIndex: number) {
@@ -492,40 +527,6 @@ export default class AtmosAutocomplete {
         }
 
         this.visibleOptions = this.selectElement.options.length;
-    }
-
-    destroy() {
-        // First remove all associated event listeners on elements that will remain.
-        // The rest of the listeners will be removed when we remove the mocks.
-        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
-        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
-        document.removeEventListener("click", this.listeners.documentClickListener);
-        document.removeEventListener("resize", this.listeners.documentResizeListener);
-        for (const label of this.selectElement.labels) {
-            label.removeEventListener("click", this.listeners.labelClickListener);
-        }
-
-        // Disconnect all associated mutation observers.
-        this.selectElementOptionsChangeMutationObserver.disconnect();
-        this.selectElementAttributesChangeMutationObserver.disconnect();
-
-        // Remove the mocks from the DOM tree and the autocomplete collection.
-        this.mocksWrapper.remove();
-        this.menuMock.remove();
-        AtmosAutocomplete.autocompletes.delete(this.selectElement);
-
-        // Show the original select element
-        this.selectElement.style.removeProperty("display");
-
-        this.selectElement = null;
-        this.mocksWrapper = null;
-        this.inputMock = null;
-        this.menuMock = null;
-        this.selectedMenuItemMock = null;
-        this.showAllOptionsButton = null;
-        this.selectElementOptionsChangeMutationObserver = null;
-        this.selectElementAttributesChangeMutationObserver = null;
-        this.listeners = null;
     }
 }
 
