@@ -160,7 +160,7 @@ export default class AtmosAutocomplete {
             } else if (target.closest(".autocomplete-input") === this.autocompleteInputMock) {
                 // Don't close the menu if the user clicks on the input mock.
                 return;
-            } else if (target.closest(".autocomplete-menu-toggle") === this.showAllOptionsButton) {
+            } else if (this.showAllOptionsButton && target.closest(".autocomplete-menu-toggle") === this.showAllOptionsButton) {
                 // Don't close the menu if the user clicks on the "Show all" button.
                 return;
             }
@@ -174,7 +174,7 @@ export default class AtmosAutocomplete {
         window.addEventListener("resize", this.listeners.documentResizeListener);
 
         // When the user clicks on the "Show all" button, clear the filter and show all entries.
-        this.showAllOptionsButton.addEventListener("click", () => {
+        this.showAllOptionsButton?.addEventListener("click", () => {
             this.filterAutocompleteMenu("");
 
             if (this.hidden) this.show();
@@ -203,7 +203,7 @@ export default class AtmosAutocomplete {
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
             this.autocompleteInputMock.disabled = selectElement.disabled;
-            this.showAllOptionsButton.disabled = selectElement.disabled;
+            if (this.showAllOptionsButton) this.showAllOptionsButton.disabled = selectElement.disabled;
         });
         this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
             attributes: true,
@@ -432,18 +432,18 @@ export default class AtmosAutocomplete {
         Redom.mount(document.body, autocompleteMenuMock);
         this.autocompleteMenuMock = autocompleteMenuMock;
 
-        // Create a button that shows all options when clicked, positioned middle right of the input mock.
-        let showAllOptionsButton = Redom.el("button.autocomplete-menu-toggle", {
-            tabIndex: -1,
-            type: "button",
-            disabled: this.selectElement.disabled,
-            title: "Show all"
-        }) as HTMLButtonElement;
-        Redom.mount(autocompleteWrapper, showAllOptionsButton);
-        this.showAllOptionsButton = showAllOptionsButton;
-
         // If a button source is provided, create an image for that button.
         if (this.selectElement.dataset.showAllButtonSrc) {
+            // Create a button that shows all options when clicked, positioned middle right of the input mock.
+            let showAllOptionsButton = Redom.el("button.autocomplete-menu-toggle", {
+                tabIndex: -1,
+                type: "button",
+                disabled: this.selectElement.disabled,
+                title: "Show all"
+            }) as HTMLButtonElement;
+            Redom.mount(autocompleteWrapper, showAllOptionsButton);
+            this.showAllOptionsButton = showAllOptionsButton;
+
             let selectedTickImage = Redom.el("img.autocomplete-toggle-caret", {
                 src: this.selectElement.dataset.showAllButtonSrc,
                 alt: "Show all"
@@ -459,9 +459,9 @@ export default class AtmosAutocomplete {
         if (this.selectElement.dataset.autocompleteMenuClass)
             autocompleteMenuMock.classList.add(this.selectElement.dataset.autocompleteMenuClass);
         if (this.selectElement.dataset.autocompleteShowAllButtonClass)
-            showAllOptionsButton.classList.add(this.selectElement.dataset.autocompleteShowAllButtonClass);
+            this.showAllOptionsButton.classList.add(this.selectElement.dataset.autocompleteShowAllButtonClass);
         if (this.selectElement.dataset.autocompleteShowAllButtonClass)
-            showAllOptionsButton.classList.add(this.selectElement.dataset.autocompleteShowAllButtonClass);
+            this.showAllOptionsButton.classList.add(this.selectElement.dataset.autocompleteShowAllButtonClass);
 
         // Generate the option elements in the dropdown
         this.generateAutocompleteMenuChildren();
