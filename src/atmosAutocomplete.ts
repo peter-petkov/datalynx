@@ -13,6 +13,7 @@ export default class AtmosAutocomplete {
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
     private hidden: boolean = true;
+    private visibleOptions: number;
 
     constructor(selectElement: HTMLSelectElement) {
         if (AtmosAutocomplete.autocompletes.has(selectElement)) return;
@@ -42,6 +43,8 @@ export default class AtmosAutocomplete {
                 // this.filterAutocompleteMenu(""/*, false*/);
 
                 if (this.hidden) this.show();
+                else if (!this.visibleOptions) this.hide();
+
                 this.positionAutocompleteMenu();
 
                 this.selectedMenuOption?.scrollIntoView({ block: "nearest", });
@@ -96,11 +99,14 @@ export default class AtmosAutocomplete {
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the autocomplete menu.
         this.listeners.selectElementChangeListener = () => {
-            this.updateAutocompleteInput(this.selectElement.value);
+            this.updateAutocompleteInput(this.selectElement.selectedOptions[0]?.textContent?.trim());
             this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateAutocompleteMenu(this.selectElement.selectedIndex);
+
             if (this.hidden) this.show();
+            else if (!this.visibleOptions) this.hide();
+
             this.positionAutocompleteMenu();
         };
         selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
@@ -112,7 +118,7 @@ export default class AtmosAutocomplete {
             for (const option of this.selectElement.options) {
                 // Compare text content instead of value because the two might differ and the user doesn't
                 // see the value, only the text content of the option.
-                if (option.textContent === (<HTMLInputElement>e.target).value) {
+                if (option.textContent?.trim() === (<HTMLInputElement>e.target).value?.trim()) {
                     matchingOptionIndex = option.index;
                     break;
                 }
@@ -126,6 +132,8 @@ export default class AtmosAutocomplete {
             this.updateAutocompleteMenu(this.selectElement.selectedIndex);
 
             if (this.hidden) this.show();
+            else if (!this.visibleOptions) this.hide();
+
             this.positionAutocompleteMenu();
         }
         this.autocompleteInputMock.addEventListener("input", autocompleteInputMockListener);
@@ -142,7 +150,7 @@ export default class AtmosAutocomplete {
 
             this.updateSelectElement(selectedIndex);
 
-            this.updateAutocompleteInput(this.selectElement.value);
+            this.updateAutocompleteInput(this.selectElement.selectedOptions[0]?.textContent?.trim());
             this.updateAutocompleteInputTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateAutocompleteMenu(selectedIndex);
@@ -210,6 +218,7 @@ export default class AtmosAutocomplete {
             attributeFilter: [ "disabled" ]
         });
 
+        this.visibleOptions = selectElement.options.length;
         selectElement.style.display = "none";
 
         AtmosAutocomplete.autocompletes.set(selectElement, this);
@@ -257,6 +266,8 @@ export default class AtmosAutocomplete {
     }
 
     show() {
+        if (!this.visibleOptions) return;
+
         // First hide all other menu mocks, since only one needs to be shown at one time.
         for (const [ _, autocomplete ] of AtmosAutocomplete.autocompletes) {
             if (!autocomplete.hidden) autocomplete.hide();
@@ -269,6 +280,8 @@ export default class AtmosAutocomplete {
     }
 
     toggle() {
+        if (!this.visibleOptions && this.hidden) return;
+
         this.autocompleteMenuMock.classList.toggle("hidden");
         this.positionAutocompleteMenu();
 
@@ -354,12 +367,15 @@ export default class AtmosAutocomplete {
     private filterAutocompleteMenu(value: string) {
         console.debug(`Filtering menu.`);
 
+        this.visibleOptions = 0;
+
         // If input mock value is empty, show all the options.
         if (!value) {
             for (const menuItemMock of this.autocompleteMenuMock.querySelectorAll(".hidden")) {
                 menuItemMock.classList.remove("hidden");
             }
 
+            this.visibleOptions = this.selectElement.options.length;
             return;
         }
 
@@ -374,9 +390,11 @@ export default class AtmosAutocomplete {
                 // Case in which we have a perfectly matching option.
                 // Show the option mock.
                 this.autocompleteMenuMock.children[i].classList.remove("hidden");
+                this.visibleOptions++;
             } else if (normalizedOptionText.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
                 this.autocompleteMenuMock.children[i].classList.remove("hidden");
+                this.visibleOptions++;
             } else {
                 // Case in which we have a non-matching option and must hide it.
                 this.autocompleteMenuMock.children[i].classList.add("hidden");
