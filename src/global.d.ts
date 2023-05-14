@@ -1,7 +1,6 @@
-interface HTMLSelectElement {
-    autocompleteInput: HTMLInputElement;
+interface HTMLElement {
+    datalistOption: HTMLOptionElement;
 }
-
-interface HTMLInputElement {
-    selectElement: HTMLSelectElement;
+interface HTMLOptionElement {
+    autocompleteOption: HTMLLIElement;
 }

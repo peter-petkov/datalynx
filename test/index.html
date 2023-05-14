@@ -9,25 +9,25 @@
         {
             "imports": {"redom": "../node_modules/redom/esm/index.js"}
         }
+
     </script>
 </head>
 <body>
 <label>
     Atmos autocomplete
-    <select name="product-manufacturer" data-toggle="autocomplete" class="mt-2 form-field"
-            data-selected-item-tick-src="./check.png"
-            data-show-all-button-src="./caret-down.png">
+    <input class="mt-2 form-field" data-toggle="autocomplete" data-selected-item-tick-src="./check.png"
+           data-show-all-button-src="./caret-down.png" list="list">
+    <datalist id="list">
         <option disabled title="Explanation 1">Select an option</option>
-        <option value="1" title="Explanation 1">A</option>
-        <option value="2"
-                title="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus ea expedita fuga mollitia odit, placeat quod repellendus repudiandae sunt! Asperiores cupiditate deleniti est explicabo laborum molestiae nihil quis repudiandae sapiente!">
+        <option title="Explanation 1">A</option>
+        <option title="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus ea expedita fuga mollitia odit, placeat quod repellendus repudiandae sunt! Asperiores cupiditate deleniti est explicabo laborum molestiae nihil quis repudiandae sapiente!">
             Aa
         </option>
-        <option value="3">B</option>
-        <option value="4">C</option>
-        <option value="5">D</option>
-        <option value="6">E</option>
-    </select>
+        <option>B</option>
+        <option>C</option>
+        <option>D</option>
+        <option>E</option>
+    </datalist>
 </label>
 <script type="module" src="../dist/atmosAutocomplete.js"></script>
 </body>
