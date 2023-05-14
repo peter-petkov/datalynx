@@ -1,6 +1,7 @@
-interface HTMLElement {
-    datalistOption: HTMLOptionElement;
-}
 interface HTMLOptionElement {
-    autocompleteOption: HTMLLIElement;
+    autocompleteMenuOption: HTMLLIElement;
+}
+
+interface HTMLLIElement {
+    datalistOption: HTMLOptionElement;
 }
