@@ -48,9 +48,11 @@ export default class AtmosAutocomplete {
                 } while (!nextOption || nextOption.classList.contains("hidden") || nextOption.classList.contains("disabled"))
 
                 this.updateInputElement(nextOption.datalistOption.value);
-                this.updateMenuMock([...this.datalistElement.children].indexOf(nextOption.datalistOption));
 
-                this.inputElement.dispatchEvent(new CustomEvent("select.atmos-autocomplete", { bubbles: true }));
+                this.inputElement.dispatchEvent(new CustomEvent("change", {
+                    bubbles: true,
+                    detail: { filterMenu: false }
+                }));
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
                 if (!this.visibleOptions) return;
@@ -63,9 +65,11 @@ export default class AtmosAutocomplete {
                 } while (!previousOption || previousOption.classList.contains("hidden") || previousOption.classList.contains("disabled"))
 
                 this.updateInputElement(previousOption.datalistOption.value);
-                this.updateMenuMock([...this.datalistElement.children].indexOf(previousOption.datalistOption));
 
-                this.inputElement.dispatchEvent(new CustomEvent("select.atmos-autocomplete", { bubbles: true }));
+                this.inputElement.dispatchEvent(new CustomEvent("change", {
+                    bubbles: true,
+                    detail: { filterMenu: false }
+                }));
             } else if (e.code === "Escape") {
                 // Close the option menu on Escape key
                 e.preventDefault();
@@ -81,8 +85,10 @@ export default class AtmosAutocomplete {
 
         // When the user inputs a value to the autocomplete input, filter the menu mock
         // to only show options that match (partially or fully) the typed value.
-        const inputListener = () => {
-            this.filterMenuMock(this.inputElement.value);
+        const inputListener = (e: CustomEvent) => {
+            if (e.detail?.filterMenu !== false) {
+                this.filterMenuMock(this.inputElement.value);
+            }
 
             this.updateMenuMock([ ...this.datalistElement.children ].findIndex(o => o.textContent.trim() === this.inputElement.value.trim()));
 
@@ -104,15 +110,12 @@ export default class AtmosAutocomplete {
 
             if (target.classList.contains("disabled")) return;
 
-            let selectedIndex = [ ...this.menuMock.children ].indexOf(target);
-
             this.updateInputElement(target.datalistOption.value);
 
-            this.updateMenuMock(selectedIndex);
-
-            this.updateInputElementTitle(target.title);
-
-            this.inputElement.dispatchEvent(new CustomEvent("select.atmos-autocomplete", { bubbles: true }));
+            this.inputElement.dispatchEvent(new CustomEvent("change", {
+                bubbles: true,
+                detail: { filterMenu: false }
+            }));
         });
 
         // When the user clicks somewhere else, close the menu mock.
