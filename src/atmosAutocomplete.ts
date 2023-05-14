@@ -185,7 +185,7 @@ export default class AtmosAutocomplete {
     }
 
     static init() {
-        let inputElements = document.querySelectorAll<HTMLInputElement>("[data-toggle='autocomplete']");
+        let inputElements = document.querySelectorAll<HTMLInputElement>("[data-toggle=autocomplete]");
 
         // Autodetect and create an autocomplete component for each select element found.
         for (const inputElement of inputElements) {
