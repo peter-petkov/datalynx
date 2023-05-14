@@ -228,7 +228,7 @@ export default class AtmosAutocomplete {
                     toggles.push(...removedNode.querySelectorAll<HTMLInputElement>("[data-toggle=autocomplete]"));
 
                     for (const toggle of toggles) {
-                        AtmosAutocomplete.get(removedNode)?.destroy();
+                        AtmosAutocomplete.get(toggle)?.destroy();
                     }
                 }
             }
