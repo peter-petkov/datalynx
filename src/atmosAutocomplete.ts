@@ -211,12 +211,12 @@ export default class AtmosAutocomplete {
                     for (const toggle of toggles) {
                         const dataListElement = toggle.list as HTMLDataListElement;
                         if (!dataListElement) {
-                            console.debug("Autocomplete element doesn't have a datalist. Skipping initialization.", addedNode);
+                            console.debug("Autocomplete element doesn't have a datalist. Skipping initialization.", toggle);
                             continue;
                         }
 
                         // Skip initialization if component has already been initialized before detection.
-                        if (!this.autocompletes.has(addedNode)) new AtmosAutocomplete(toggle, dataListElement);
+                        if (!this.autocompletes.has(toggle)) new AtmosAutocomplete(toggle, dataListElement);
                     }
                 }
 
