@@ -23,7 +23,7 @@ export default class AtmosAutocomplete {
         this.generateMocks();
 
         // When focusing the input, if at least 1 option matches the input filter, show the option menu.
-        this.inputElement.addEventListener("focus", () => {
+        this.listeners.inputFocusListener = () => {
             if ([ ...this.menuMock.children ].some(c => !c.classList.contains("hidden"))) {
                 if (this.hidden) this.show();
                 else if (!this.visibleOptions) this.hide();
@@ -32,7 +32,8 @@ export default class AtmosAutocomplete {
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             }
-        });
+        };
+        this.inputElement.addEventListener("focus", this.listeners.inputFocusListener);
 
         // Keyboard navigation to match the native select element's feature
         this.mocksWrapper.addEventListener("keydown", (e) => {
@@ -85,7 +86,7 @@ export default class AtmosAutocomplete {
 
         // When the user inputs a value to the autocomplete input, filter the menu mock
         // to only show options that match (partially or fully) the typed value.
-        const inputListener = (e: CustomEvent) => {
+        this.listeners.inputListener = (e: CustomEvent) => {
             if (e.detail?.filterMenu !== false) {
                 this.filterMenuMock(this.inputElement.value);
             }
@@ -104,8 +105,8 @@ export default class AtmosAutocomplete {
 
             this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
         }
-        this.inputElement.addEventListener("input", inputListener);
-        this.inputElement.addEventListener("change", inputListener);
+        this.inputElement.addEventListener("input", this.listeners.inputListener);
+        this.inputElement.addEventListener("change", this.listeners.inputListener);
 
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
@@ -282,17 +283,24 @@ export default class AtmosAutocomplete {
         // The rest of the listeners will be removed when we remove the mocks.
         document.removeEventListener("click", this.listeners.documentClickListener);
         document.removeEventListener("resize", this.listeners.documentResizeListener);
+        this.inputElement.removeEventListener("focus", this.listeners.inputFocusListener);
+        this.inputElement.removeEventListener("input", this.listeners.inputListener);
+        this.inputElement.removeEventListener("change", this.listeners.inputListener);
 
         // Disconnect all associated mutation observers.
         this.optionsChangeMutationObserver.disconnect();
         this.inputElementAttributesChangeMutationObserver.disconnect();
 
+        this.inputElement.setAttribute("list", this.datalistElement.id);
+
         // Remove the mocks from the DOM tree and the autocomplete collection.
         this.mocksWrapper.insertAdjacentElement("afterend", this.inputElement);
         this.menuMock.remove();
+        this.mocksWrapper.remove();
         AtmosAutocomplete.autocompletes.delete(this.inputElement);
 
         this.inputElement = null;
+        this.datalistElement = null;
         this.mocksWrapper = null;
         this.menuMock = null;
         this.selectedMenuItemMock = null;
@@ -300,6 +308,7 @@ export default class AtmosAutocomplete {
         this.optionsChangeMutationObserver = null;
         this.inputElementAttributesChangeMutationObserver = null;
         this.listeners = null;
+        this.visibleOptions = null;
     }
 
     private updateInputElement(value: string) {
