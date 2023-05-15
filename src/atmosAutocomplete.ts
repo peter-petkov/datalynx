@@ -90,10 +90,10 @@ export default class AtmosAutocomplete {
                 this.filterMenuMock(this.inputElement.value);
             }
 
-            let selectedOptions = [ ...this.datalistElement.children ].filter(value => {
+            let selectedOptions = [ ...this.menuMock.children ].filter(value => {
                 return value.textContent.trim() === this.inputElement.value.trim()
             });
-            this.updateMenuMock(selectedOptions as HTMLOptionElement[]);
+            this.updateMenuMock(selectedOptions as HTMLLIElement[]);
 
             this.updateInputElementTitle(this.selectedMenuItemMock?.title);
 
@@ -101,6 +101,8 @@ export default class AtmosAutocomplete {
             else if (!this.visibleOptions) this.hide();
 
             this.positionMenuMock();
+
+            this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
         }
         this.inputElement.addEventListener("input", inputListener);
         this.inputElement.addEventListener("change", inputListener);
@@ -209,14 +211,16 @@ export default class AtmosAutocomplete {
                     toggles.push(...addedNode.querySelectorAll<HTMLInputElement>("[data-toggle=autocomplete]"));
 
                     for (const toggle of toggles) {
+                        // Skip initialization if component has already been initialized before detection.
+                        if (this.autocompletes.has(toggle)) continue;
+
                         const dataListElement = toggle.list as HTMLDataListElement;
                         if (!dataListElement) {
                             console.debug("Autocomplete element doesn't have a datalist. Skipping initialization.", toggle);
                             continue;
                         }
 
-                        // Skip initialization if component has already been initialized before detection.
-                        if (!this.autocompletes.has(toggle)) new AtmosAutocomplete(toggle, dataListElement);
+                        new AtmosAutocomplete(toggle, dataListElement);
                     }
                 }
 
@@ -308,7 +312,7 @@ export default class AtmosAutocomplete {
         this.inputElement.title = value?.toString();
     }
 
-    private updateMenuMock(selectedOptions: HTMLOptionElement[]) {
+    private updateMenuMock(selectedOptions: HTMLLIElement[]) {
         console.debug(`Update menu's options.`);
 
         for (const child of this.menuMock.children) {
@@ -318,8 +322,8 @@ export default class AtmosAutocomplete {
         this.selectedMenuItemMock = null;
 
         for (const selectedOption of selectedOptions) {
-            selectedOption.autocompleteMenuOption.classList.add("selected");
-            this.selectedMenuItemMock = selectedOption.autocompleteMenuOption;
+            selectedOption.classList.add("selected");
+            this.selectedMenuItemMock = selectedOption;
         }
     }
 
@@ -446,7 +450,6 @@ export default class AtmosAutocomplete {
             Redom.mount(this.menuMock, menuItemMock);
 
             menuItemMock["datalistOption"] = option;
-            option["autocompleteMenuOption"] = menuItemMock as HTMLLIElement;
 
             if (this.inputElement.value === option.value && !option.disabled) {
                 menuItemMock.classList.add("selected");
