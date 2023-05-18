@@ -452,10 +452,9 @@ export default class AtmosAutocomplete {
         for (const child of this.datalistElement.children) {
             const option = (<HTMLOptionElement>child);
             // Create an option element with its tick box, which will remain hidden until the element is selected.
-            let menuItemMock = Redom.el("li.atmos-autocomplete-menu-item",
-                Redom.el("span.atmos-autocomplete-menu-item-text", option.textContent), {
-                    title: option.title
-                });
+            let menuItemMock = Redom.el("li.atmos-autocomplete-menu-item", option.textContent, {
+                title: option.title
+            });
             Redom.mount(this.menuMock, menuItemMock);
 
             menuItemMock["datalistOption"] = option;
