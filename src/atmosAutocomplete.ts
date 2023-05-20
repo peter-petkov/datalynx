@@ -13,6 +13,7 @@ export default class AtmosAutocomplete {
     private inputElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
     private visibleOptions: number;
+    private menuItemMocks = new Array<HTMLLIElement>();
 
     constructor(inputElement: HTMLInputElement, datalistElement: HTMLDataListElement) {
         if (AtmosAutocomplete.autocompletes.has(inputElement)) return;
@@ -24,7 +25,7 @@ export default class AtmosAutocomplete {
 
         // When focusing the input, if at least 1 option matches the input filter, show the option menu.
         this.listeners.inputFocusListener = () => {
-            if ([ ...this.menuMock.children ].some(c => !c.classList.contains("hidden"))) {
+            if (this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
                 if (this.hidden) this.show();
                 else if (!this.visibleOptions) this.hide();
 
@@ -44,8 +45,13 @@ export default class AtmosAutocomplete {
                 // If the user pressed the down arrow, search the first visible option below the currently selected one
                 // or cycle back to the first visible one.
                 let nextOption = this.selectedMenuItemMock;
+                let i = this.menuItemMocks.indexOf(nextOption);
                 do {
-                    nextOption = nextOption?.nextElementSibling as HTMLLIElement ?? this.menuMock.firstElementChild as HTMLLIElement;
+                    nextOption = this.menuItemMocks[++i] as HTMLLIElement;
+                    if (!nextOption) {
+                        i = 0;
+                        nextOption = this.menuItemMocks[0] as HTMLLIElement
+                    }
                 } while (!nextOption || nextOption.classList.contains("hidden") || nextOption.classList.contains("disabled"))
 
                 this.updateInputElement(nextOption.datalistOption.value);
@@ -61,8 +67,13 @@ export default class AtmosAutocomplete {
                 // If the user pressed the up arrow, search the first visible option above the currently selected one
                 // or cycle back to the last visible one.
                 let previousOption = this.selectedMenuItemMock;
+                let i = this.menuItemMocks.indexOf(previousOption);
                 do {
-                    previousOption = previousOption?.previousElementSibling as HTMLLIElement ?? this.menuMock.lastElementChild as HTMLLIElement;
+                    previousOption = this.menuItemMocks[--i] as HTMLLIElement;
+                    if (!previousOption) {
+                        i = this.menuItemMocks.length - 1;
+                        previousOption = this.menuItemMocks[this.menuItemMocks.length - 1] as HTMLLIElement
+                    }
                 } while (!previousOption || previousOption.classList.contains("hidden") || previousOption.classList.contains("disabled"))
 
                 this.updateInputElement(previousOption.datalistOption.value);
@@ -91,7 +102,7 @@ export default class AtmosAutocomplete {
                 this.filterMenuMock(this.inputElement.value);
             }
 
-            let selectedOptions = [ ...this.menuMock.children ].filter(value => {
+            let selectedOptions = this.menuItemMocks.filter(value => {
                 return value.textContent.trim() === this.inputElement.value.trim()
             });
             this.updateMenuMock(selectedOptions as HTMLLIElement[]);
@@ -324,8 +335,8 @@ export default class AtmosAutocomplete {
     private updateMenuMock(selectedOptions: HTMLLIElement[]) {
         console.debug(`Update menu's options.`);
 
-        for (const child of this.menuMock.children) {
-            child?.classList.remove("selected");
+        for (const menuItemMock of this.menuItemMocks) {
+            menuItemMock?.classList.remove("selected");
         }
 
         this.selectedMenuItemMock = null;
@@ -352,25 +363,37 @@ export default class AtmosAutocomplete {
         }
 
         // Iterate the available options
-        for (let i = 0; i < this.datalistElement.children.length; i++) {
-            const option = this.datalistElement.children[i];
-
+        for (const menuItemMock of this.menuItemMocks) {            
             // First normalize the values before comparing them.
-            let normalizedOptionText = option.textContent.toLowerCase().trim();
+            let normalizedOptionText = menuItemMock.datalistOption.textContent.toLowerCase().trim();
             let normalizedText = value.toLowerCase().trim();
-            if (option.textContent === value) {
+            if (menuItemMock.datalistOption.textContent === value) {
                 // Case in which we have a perfectly matching option.
                 // Show the option mock.
-                this.menuMock.children[i].classList.remove("hidden");
+                menuItemMock.classList.remove("hidden");
+                if (menuItemMock.parentElement.classList.contains("atmos-autocomplete-menu-optgroup"))
+                    menuItemMock.parentElement.classList.remove("hidden");
+
                 this.visibleOptions++;
             } else if (normalizedOptionText.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
-                this.menuMock.children[i].classList.remove("hidden");
+                menuItemMock.classList.remove("hidden");
+                if (menuItemMock.parentElement.classList.contains("atmos-autocomplete-menu-optgroup"))
+                    menuItemMock.parentElement.classList.remove("hidden");
+
                 this.visibleOptions++;
             } else {
                 // Case in which we have a non-matching option and must hide it.
-                this.menuMock.children[i].classList.add("hidden");
+                menuItemMock.classList.add("hidden");
+                if (menuItemMock.parentElement.classList.contains("atmos-autocomplete-menu-optgroup"))
+                    menuItemMock.parentElement.classList.add("hidden");
             }
+        }
+
+        let visibleMenuItemMocksWithHiddenOptgroup =
+            this.menuMock.querySelectorAll(".atmos-autocomplete-menu-optgroup.hidden .atmos-autocomplete-menu-item:not(.hidden)");
+        for (const menuItemMock of visibleMenuItemMocksWithHiddenOptgroup) {
+            menuItemMock.parentElement.classList.remove("hidden");
         }
     }
 
@@ -450,40 +473,57 @@ export default class AtmosAutocomplete {
         Redom.setChildren(this.menuMock, []);
 
         for (const child of this.datalistElement.children) {
-            const option = (<HTMLOptionElement>child);
-            // Create an option element with its tick box, which will remain hidden until the element is selected.
-            let menuItemMock = Redom.el("li.atmos-autocomplete-menu-item", option.textContent, {
-                title: option.title
-            });
-            Redom.mount(this.menuMock, menuItemMock);
+            if (child instanceof HTMLOptGroupElement) {
+                let optgroupMock = Redom.el("li.atmos-autocomplete-menu-optgroup", Redom.el("span.atmos-autocomplete-menu-optgroup-text", child.label));
+                Redom.mount(this.menuMock, optgroupMock);
 
-            menuItemMock["datalistOption"] = option;
-
-            if (this.inputElement.value === option.value && !option.disabled) {
-                menuItemMock.classList.add("selected");
-                this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
-                this.updateInputElementTitle(this.selectedMenuItemMock.title);
+                for (const option of child.querySelectorAll("option")) {
+                    this.generateOptionMock(optgroupMock, option);
+                }
+            } else if (child instanceof HTMLOptionElement) {
+                this.generateOptionMock(this.menuMock, child);
             }
-
-            if (option.disabled) {
-                menuItemMock.classList.add("disabled");
-            }
-
-            let selectedTickImage = Redom.el("img.atmos-autocomplete-menu-item-tick", {
-                alt: option.textContent || option.value ? "Selected" : "",
-            }) as HTMLImageElement;
-            // If a selected image source is provided, create an image for selected options.
-            Redom.mount(menuItemMock, selectedTickImage);
-            if (this.inputElement.dataset.selectedItemTickSrc) {
-                selectedTickImage.src = this.inputElement.dataset.selectedItemTickSrc;
-            }
-
-            // Apply the custom class provided by the select element's configuration.
-            if (this.inputElement.dataset.menuItemClass)
-                menuItemMock.classList.add(this.inputElement.dataset.menuItemClass);
         }
 
         this.visibleOptions = this.datalistElement.childElementCount;
+    }
+
+    private generateOptionMock(parent: HTMLElement, option: HTMLOptionElement) {
+        // Create an option element with its tick box, which will remain hidden until the element is selected.
+        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-autocomplete-menu-item", option.textContent, {
+            title: option.title
+        });
+        Redom.mount(parent, menuItemMock);
+
+        menuItemMock["datalistOption"] = option;
+
+        if (this.inputElement.value === option.value && !option.disabled) {
+            menuItemMock.classList.add("selected");
+            this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
+            this.updateInputElementTitle(this.selectedMenuItemMock.title);
+        }
+
+        if (option.disabled ||
+            (parent.classList.contains("atmos-autocomplete-menu-optgroup") &&
+                option.parentElement instanceof HTMLOptGroupElement &&
+                option.parentElement.disabled)) {
+            menuItemMock.classList.add("disabled");
+        }
+
+        let selectedTickImage = Redom.el("img.atmos-autocomplete-menu-item-tick", {
+            alt: option.textContent || option.value ? "Selected" : "",
+        }) as HTMLImageElement;
+        // If a selected image source is provided, create an image for selected options.
+        Redom.mount(menuItemMock, selectedTickImage);
+        if (this.inputElement.dataset.selectedItemTickSrc) {
+            selectedTickImage.src = this.inputElement.dataset.selectedItemTickSrc;
+        }
+
+        // Apply the custom class provided by the select element's configuration.
+        if (this.inputElement.dataset.menuItemClass)
+            menuItemMock.classList.add(this.inputElement.dataset.menuItemClass);
+
+        this.menuItemMocks.push(menuItemMock);
     }
 }
 
