@@ -57,11 +57,11 @@ export default class AtmosAutocomplete {
                         nextOption = this.menuItemMocks[0] as HTMLLIElement
                     }
                 } while (!nextOption ||
-                (previousOption && nextOption.datalistOption.value === previousOption.datalistOption.value) ||
+                (previousOption && nextOption.datalistOption.textContent === previousOption.datalistOption.textContent) ||
                 nextOption.classList.contains("hidden") ||
                 nextOption.classList.contains("disabled"))
 
-                this.updateInputElement(nextOption.datalistOption.value);
+                this.updateInputElement(nextOption.datalistOption.textContent);
 
                 this.inputElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
@@ -84,11 +84,11 @@ export default class AtmosAutocomplete {
                         nextOption = this.menuItemMocks[this.menuItemMocks.length - 1] as HTMLLIElement
                     }
                 } while (!nextOption ||
-                (previousOption && nextOption.datalistOption.value === previousOption.datalistOption.value) ||
+                (previousOption && nextOption.datalistOption.textContent === previousOption.datalistOption.textContent) ||
                 nextOption.classList.contains("hidden") ||
                 nextOption.classList.contains("disabled"))
 
-                this.updateInputElement(nextOption.datalistOption.value);
+                this.updateInputElement(nextOption.datalistOption.textContent);
 
                 this.inputElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
@@ -109,21 +109,21 @@ export default class AtmosAutocomplete {
 
         // When the user inputs a value to the autocomplete input, filter the menu mock
         // to only show options that match (partially or fully) the typed value.
-        this.listeners.inputListener = (e: CustomEvent) => {
+        this.listeners.inputListener = (e?: CustomEvent) => {
             if (!this.datalistElement) return;
 
-            if (e.detail?.filterMenu !== false) {
+            if (e?.detail?.filterMenu !== false) {
                 this.filterMenuMock(this.inputElement.value);
             }
 
             let selectedOption = this.menuItemMocks
-                .find(o => !o.datalistOption.disabled && o.datalistOption.value.trim() === this.inputElement.value.trim());
+                .find(o => !o.datalistOption.disabled && o.datalistOption.textContent.trim() === this.inputElement.value.trim());
 
             this.updateMenuMock(selectedOption);
 
             this.updateInputElementTitle(this.selectedMenuItemMock?.title);
 
-            if (this.hidden) this.show();
+            if (this.hidden && e?.type === "input") this.show();
             else if (!this.visibleOptions) this.hide();
 
             this.positionMenuMock();
@@ -319,6 +319,10 @@ export default class AtmosAutocomplete {
         this.optionsChangeMutationObserver.observe(this.datalistElement, {
             childList: true
         });
+    }
+
+    refreshMenu() {
+        this.listeners.inputListener?.(new CustomEvent("change", { detail: { filterMenu: false } }));
     }
 
     destroy() {
