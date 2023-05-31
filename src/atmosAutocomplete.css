@@ -41,7 +41,6 @@
 
 .atmos-autocomplete-menu-item {
     display: flex;
-    justify-content: space-between;
     padding: .25rem .5rem;
     align-items: center;
     cursor: pointer;
@@ -76,9 +75,15 @@
     margin-left: -.5rem;
 }
 
+.atmos-autocomplete-menu-item-value {
+    margin-left: .5rem;
+    color: #808080;
+}
+
 .atmos-autocomplete-menu-item-tick {
     height: 1rem;
     width: auto;
+    margin-left: auto;
 }
 
 .atmos-autocomplete-menu-item:not(.selected) .atmos-autocomplete-menu-item-tick {

@@ -110,4 +110,8 @@ label {
 .atmos-autocomplete-menu-optgroup .atmos-autocomplete-menu-item,
 .atmos-autocomplete-menu-optgroup-text {
     margin: 0 -.75rem;
+}
+
+.atmos-autocomplete-menu-item.selected .atmos-autocomplete-menu-item-value {
+    color: #d9d9d9;
 }*/
