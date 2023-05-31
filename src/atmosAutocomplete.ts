@@ -183,10 +183,18 @@ export default class AtmosAutocomplete {
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.inputElementAttributesChangeMutationObserver = new MutationObserver(() => {
             if (this.showAllOptionsButton) this.showAllOptionsButton.disabled = inputElement.disabled;
+
+            // Detect if the input element's list has been changed.
+            if (this.inputElement.list) {
+                this.datalistElement = this.inputElement.list as HTMLDataListElement;
+                this.generateOptionMocks();
+                this.inputElement.removeAttribute("list");
+                this.positionMenuMock();
+            }
         });
         this.inputElementAttributesChangeMutationObserver.observe(inputElement, {
             attributes: true,
-            attributeFilter: [ "disabled" ]
+            attributeFilter: [ "disabled", "list" ]
         });
 
         this.visibleOptions = this.datalistElement.childElementCount;
