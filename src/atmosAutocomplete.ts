@@ -143,7 +143,7 @@ export default class AtmosAutocomplete {
 
             if (target.classList.contains("disabled")) return;
 
-            this.updateInputElement(target.datalistOption.value);
+            this.updateInputElement(target.datalistOption.textContent);
 
             this.inputElement.dispatchEvent(new CustomEvent("change", {
                 bubbles: true,

@@ -11,6 +11,11 @@
     padding-right: 2rem;
 }
 
+.atmos-autocomplete-input::-webkit-calendar-picker-indicator {
+    display: none;
+    opacity: 0;
+}
+
 .atmos-autocomplete-menu-toggle {
     font-size: 10px;
     position: absolute;
