@@ -334,7 +334,7 @@ export default class AtmosAutocomplete {
         this.optionsChangeMutationObserver.disconnect();
         this.inputElementAttributesChangeMutationObserver.disconnect();
 
-        this.inputElement.setAttribute("list", this.datalistElement.id);
+        if (this.datalistElement) this.inputElement.setAttribute("list", this.datalistElement.id);
 
         // Remove the mocks from the DOM tree and the autocomplete collection.
         this.mocksWrapper.insertAdjacentElement("afterend", this.inputElement);
