@@ -182,7 +182,7 @@ export default class AtmosAutocomplete {
             this.selectedMenuItemMock?.scrollIntoView({ block: "nearest" });
         });
 
-        // Watch the select element's options for additions or removals, mirroring the structure every time.
+        // Watch the datalist element's options for additions or removals, mirroring the structure every time.
         this.optionsChangeMutationObserver = new MutationObserver(() => {
             this.generateOptionMocks();
         });
@@ -190,7 +190,7 @@ export default class AtmosAutocomplete {
             childList: true
         });
 
-        // Watch the select element's attributes for changes, mirroring their state in the input mock.
+        // Watch the input element's attributes for changes, mirroring their state in the input mock.
         this.inputElementAttributesChangeMutationObserver = new MutationObserver(() => {
             if (this.showAllOptionsButton) this.showAllOptionsButton.disabled = inputElement.disabled;
 
@@ -219,7 +219,7 @@ export default class AtmosAutocomplete {
     static init() {
         let inputElements = document.querySelectorAll<HTMLInputElement>("[data-toggle=autocomplete]");
 
-        // Autodetect and create an autocomplete component for each select element found.
+        // Autodetect and create an autocomplete component for each input element found.
         for (const inputElement of inputElements) {
             const dataListElement = inputElement.list as HTMLDataListElement;
             if (!dataListElement) {
@@ -230,7 +230,7 @@ export default class AtmosAutocomplete {
             new AtmosAutocomplete(inputElement, dataListElement);
         }
 
-        // Place an observer to create an autocomplete whenever a select element with an autocomplete toggle gets added.
+        // Place an observer to create an autocomplete whenever an input element with an autocomplete toggle gets added.
         new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const addedNode of mutation.addedNodes) {
@@ -272,8 +272,8 @@ export default class AtmosAutocomplete {
         });
     }
 
-    static get(selectElement) {
-        return this.autocompletes.get(selectElement);
+    static get(element) {
+        return this.autocompletes.get(element);
     }
 
     hide() {
@@ -451,7 +451,7 @@ export default class AtmosAutocomplete {
 
     private generateMocks() {
         let mocksWrapper = Redom.el("div.atmos-autocomplete-wrapper");
-        // Insert the autocomplete mock right after the select.
+        // Insert the autocomplete wrapper mock right after the input element.
         this.inputElement.insertAdjacentElement("afterend", mocksWrapper);
         this.mocksWrapper = mocksWrapper;
 
@@ -484,7 +484,7 @@ export default class AtmosAutocomplete {
             Redom.mount(showAllOptionsButton, selectedTickImage);
         }
 
-        // Apply the custom classes provided by the select element's configuration.
+        // Apply the custom classes provided by the input element's dataset.
         if (this.inputElement.dataset.wrapperClass)
             mocksWrapper.classList.add(this.inputElement.dataset.wrapperClass);
         if (this.inputElement.dataset.menuClass)
@@ -551,7 +551,7 @@ export default class AtmosAutocomplete {
             selectedTickImage.src = this.inputElement.dataset.selectedItemTickSrc;
         }
 
-        // Apply the custom class provided by the select element's configuration.
+        // Apply the custom class provided by the input element's dataset.
         if (this.inputElement.dataset.menuItemClass)
             menuItemMock.classList.add(this.inputElement.dataset.menuItemClass);
 
