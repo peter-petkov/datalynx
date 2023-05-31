@@ -12,7 +12,7 @@ export default class AtmosAutocomplete {
     private optionsChangeMutationObserver: MutationObserver;
     private inputElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
-    private visibleOptions: number;
+    private visibleOptions: number = 0;
     private menuItemMocks = new Array<HTMLLIElement>();
 
     constructor(inputElement: HTMLInputElement, datalistElement: HTMLDataListElement) {
@@ -38,6 +38,8 @@ export default class AtmosAutocomplete {
 
         // Keyboard navigation to match the native select element's feature
         this.mocksWrapper.addEventListener("keydown", (e) => {
+            if (!this.datalistElement) return;
+
             if (e.code === "ArrowDown") {
                 e.preventDefault();
                 if (!this.visibleOptions) return;
@@ -108,6 +110,8 @@ export default class AtmosAutocomplete {
         // When the user inputs a value to the autocomplete input, filter the menu mock
         // to only show options that match (partially or fully) the typed value.
         this.listeners.inputListener = (e: CustomEvent) => {
+            if (!this.datalistElement) return;
+
             if (e.detail?.filterMenu !== false) {
                 this.filterMenuMock(this.inputElement.value);
             }
@@ -132,6 +136,8 @@ export default class AtmosAutocomplete {
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
         this.menuMock.addEventListener("click", e => {
+            if (!this.datalistElement) return;
+
             let target = (<HTMLElement>e.target).closest<HTMLLIElement>(".atmos-autocomplete-menu-item");
             if (!target) return;
 
@@ -174,6 +180,8 @@ export default class AtmosAutocomplete {
 
         // When the user clicks on the "Show all" button, clear the filter and show all entries.
         this.showAllOptionsButton?.addEventListener("click", () => {
+            if (!this.datalistElement) return;
+
             this.filterMenuMock("");
 
             if (this.hidden) this.show();
@@ -186,9 +194,11 @@ export default class AtmosAutocomplete {
         this.optionsChangeMutationObserver = new MutationObserver(() => {
             this.generateOptionMocks();
         });
-        this.optionsChangeMutationObserver.observe(this.datalistElement, {
-            childList: true
-        });
+        if (this.datalistElement) {
+            this.optionsChangeMutationObserver.observe(this.datalistElement, {
+                childList: true
+            });
+        }
 
         // Watch the input element's attributes for changes, mirroring their state in the input mock.
         this.inputElementAttributesChangeMutationObserver = new MutationObserver(() => {
@@ -196,10 +206,14 @@ export default class AtmosAutocomplete {
 
             // Detect if the input element's list has been changed.
             if (this.inputElement.list) {
+                this.pauseOptionsChangeObserver();
+
                 this.datalistElement = this.inputElement.list as HTMLDataListElement;
                 this.generateOptionMocks();
                 this.inputElement.removeAttribute("list");
                 this.positionMenuMock();
+
+                this.resumeOptionsChangeObserver();
             }
         });
         this.inputElementAttributesChangeMutationObserver.observe(inputElement, {
@@ -207,7 +221,7 @@ export default class AtmosAutocomplete {
             attributeFilter: [ "disabled", "list" ]
         });
 
-        this.visibleOptions = this.datalistElement.childElementCount;
+        this.visibleOptions = this.datalistElement?.childElementCount ?? 0;
 
         AtmosAutocomplete.autocompletes.set(inputElement, this);
     }
@@ -221,13 +235,7 @@ export default class AtmosAutocomplete {
 
         // Autodetect and create an autocomplete component for each input element found.
         for (const inputElement of inputElements) {
-            const dataListElement = inputElement.list as HTMLDataListElement;
-            if (!dataListElement) {
-                console.debug("Autocomplete element doesn't have a datalist. Skipping initialization.", inputElement);
-                continue;
-            }
-
-            new AtmosAutocomplete(inputElement, dataListElement);
+            new AtmosAutocomplete(inputElement, inputElement.list as HTMLDataListElement);
         }
 
         // Place an observer to create an autocomplete whenever an input element with an autocomplete toggle gets added.
@@ -244,13 +252,7 @@ export default class AtmosAutocomplete {
                         // Skip initialization if component has already been initialized before detection.
                         if (this.autocompletes.has(toggle)) continue;
 
-                        const dataListElement = toggle.list as HTMLDataListElement;
-                        if (!dataListElement) {
-                            console.debug("Autocomplete element doesn't have a datalist. Skipping initialization.", toggle);
-                            continue;
-                        }
-
-                        new AtmosAutocomplete(toggle, dataListElement);
+                        new AtmosAutocomplete(toggle, toggle.list as HTMLDataListElement);
                     }
                 }
 
@@ -306,12 +308,14 @@ export default class AtmosAutocomplete {
             : new CustomEvent("show.atmos-autocomplete");
         this.menuMock.dispatchEvent(customEvent);
     }
-    
-    pauseOptionsObserver() {
+
+    pauseOptionsChangeObserver() {
         this.optionsChangeMutationObserver.disconnect();
     }
-    
-    resumeOptionsObserver() {
+
+    resumeOptionsChangeObserver() {
+        if (!this.datalistElement) return;
+
         this.optionsChangeMutationObserver.observe(this.datalistElement, {
             childList: true
         });
@@ -389,7 +393,7 @@ export default class AtmosAutocomplete {
         }
 
         // Iterate the available options
-        for (const menuItemMock of this.menuItemMocks) {            
+        for (const menuItemMock of this.menuItemMocks) {
             // First normalize the values before comparing them.
             let normalizedOptionText = menuItemMock.datalistOption.textContent.toLowerCase().trim();
             let normalizedOptionValue = menuItemMock.datalistOption.value.toLowerCase().trim();
@@ -498,6 +502,7 @@ export default class AtmosAutocomplete {
 
     private generateOptionMocks() {
         Redom.setChildren(this.menuMock, []);
+        if (!this.datalistElement) return;
 
         for (const child of this.datalistElement.children) {
             if (child instanceof HTMLOptGroupElement) {
@@ -521,7 +526,7 @@ export default class AtmosAutocomplete {
             title: option.title
         });
         Redom.mount(parent, menuItemMock);
-        
+
         if (option.value !== option.textContent) {
             let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
