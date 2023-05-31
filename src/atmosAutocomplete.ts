@@ -306,6 +306,16 @@ export default class AtmosAutocomplete {
             : new CustomEvent("show.atmos-autocomplete");
         this.menuMock.dispatchEvent(customEvent);
     }
+    
+    pauseOptionsObserver() {
+        this.optionsChangeMutationObserver.disconnect();
+    }
+    
+    resumeOptionsObserver() {
+        this.optionsChangeMutationObserver.observe(this.datalistElement, {
+            childList: true
+        });
+    }
 
     destroy() {
         // First remove all associated event listeners on elements that will remain.
