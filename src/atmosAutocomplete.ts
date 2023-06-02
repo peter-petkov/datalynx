@@ -481,24 +481,15 @@ export default class AtmosAutocomplete {
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
-        // If a button source is provided, create an image for that button.
-        if (this.inputElement.dataset.showAllButtonSrc) {
-            // Create a button that shows all options when clicked, positioned middle right of the input mock.
-            let showAllOptionsButton = Redom.el("button.atmos-autocomplete-menu-toggle", {
-                tabIndex: -1,
-                type: "button",
-                disabled: this.inputElement.disabled,
-                title: "Show all"
-            }) as HTMLButtonElement;
-            Redom.mount(mocksWrapper, showAllOptionsButton);
-            this.showAllOptionsButton = showAllOptionsButton;
-
-            let selectedTickImage = Redom.el("img.atmos-autocomplete-toggle-caret", {
-                src: this.inputElement.dataset.showAllButtonSrc,
-                alt: "Show all"
-            })
-            Redom.mount(showAllOptionsButton, selectedTickImage);
-        }
+        // Create a button that shows all options when clicked, positioned middle right of the input mock.
+        let showAllOptionsButton = Redom.el("button.atmos-autocomplete-menu-toggle", {
+            tabIndex: -1,
+            type: "button",
+            disabled: this.inputElement.disabled,
+            title: "Show all"
+        }) as HTMLButtonElement;
+        Redom.mount(mocksWrapper, showAllOptionsButton);
+        this.showAllOptionsButton = showAllOptionsButton;
 
         // Apply the custom classes provided by the input element's dataset.
         if (this.inputElement.dataset.wrapperClass)
@@ -560,14 +551,9 @@ export default class AtmosAutocomplete {
             menuItemMock.classList.add("disabled");
         }
 
-        let selectedTickImage = Redom.el("img.atmos-autocomplete-menu-item-tick", {
-            alt: option.textContent || option.value ? "Selected" : "",
-        }) as HTMLImageElement;
+        let selectedTickImage = Redom.el("span.atmos-autocomplete-menu-item-tick") as HTMLImageElement;
         // If a selected image source is provided, create an image for selected options.
         Redom.mount(menuItemMock, selectedTickImage);
-        if (this.inputElement.dataset.selectedItemTickSrc) {
-            selectedTickImage.src = this.inputElement.dataset.selectedItemTickSrc;
-        }
 
         // Apply the custom class provided by the input element's dataset.
         if (this.inputElement.dataset.menuItemClass)
