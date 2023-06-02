@@ -446,17 +446,17 @@ export default class AtmosAutocomplete {
         let inputRect = this.inputElement.getBoundingClientRect();
         let menuRect = this.menuMock.getBoundingClientRect();
 
-        if (inputRect.bottom + menuRect.height + 4 > window.innerHeight && inputRect.top - 4 < menuRect.height) {
+        if (inputRect.bottom + menuRect.height + 15 > window.innerHeight && inputRect.top - 15 < menuRect.height) {
             // If the menu can't be positioned either on top or bottom of the input mock,
             // position it below the input and limit its height.
-            this.menuMock.style.top = `${inputRect.bottom + window.scrollY}px`;
-            this.menuMock.style.height = `${window.innerHeight - inputRect.bottom - 4}px`;
-        } else if (inputRect.bottom + menuRect.height + 4 > window.innerHeight) {
+            this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+            this.menuMock.style.height = `${window.innerHeight - inputRect.bottom - 10}px`;
+        } else if (inputRect.bottom + menuRect.height + 15 > window.innerHeight) {
             // If there isn't enough space to position the menu below the input mock, position it above it instead.
-            this.menuMock.style.top = `${inputRect.top - menuRect.height - 8 + window.scrollY}px`;
+            this.menuMock.style.top = `${inputRect.top - menuRect.height - 5 + window.scrollY}px`;
         } else {
             // Else position the menu directly below the input element, with a little margin.
-            this.menuMock.style.top = `${inputRect.bottom + window.scrollY}px`;
+            this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
         }
 
         console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
