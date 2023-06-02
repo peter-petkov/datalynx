@@ -26,8 +26,12 @@ export default class AtmosAutocomplete {
         // When focusing the input, if at least 1 option matches the input filter, show the option menu.
         this.listeners.inputFocusListener = () => {
             if (this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
-                if (this.hidden) this.show();
-                else if (!this.visibleOptions) this.hide();
+                if (this.hidden) {
+                    this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+                    this.show();
+                } else if (!this.visibleOptions) {
+                    this.hide();
+                }
 
                 this.positionMenuMock();
 
@@ -112,6 +116,8 @@ export default class AtmosAutocomplete {
         this.listeners.inputListener = (e?: CustomEvent) => {
             if (!this.datalistElement) return;
 
+            this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+
             if (e?.detail?.filterMenu !== false) {
                 this.filterMenuMock(this.inputElement.value);
             }
@@ -181,6 +187,8 @@ export default class AtmosAutocomplete {
         // When the user clicks on the "Show all" button, clear the filter and show all entries.
         this.showAllOptionsButton?.addEventListener("click", () => {
             if (!this.datalistElement) return;
+
+            this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
 
             this.filterMenuMock("");
 
@@ -507,6 +515,7 @@ export default class AtmosAutocomplete {
     private generateOptionMocks() {
         Redom.setChildren(this.menuMock, []);
         if (!this.datalistElement) return;
+        this.menuItemMocks = [];
 
         for (const child of this.datalistElement.children) {
             if (child instanceof HTMLOptGroupElement) {
@@ -538,7 +547,7 @@ export default class AtmosAutocomplete {
 
         menuItemMock["datalistOption"] = option;
 
-        if (this.inputElement.value === option.value && !this.selectedMenuItemMock && !option.disabled) {
+        if (this.inputElement.value === option.textContent && !option.disabled) {
             menuItemMock.classList.add("selected");
             this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
             this.updateInputElementTitle(this.selectedMenuItemMock.title);
