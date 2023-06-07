@@ -551,7 +551,7 @@ export default class AtmosAutocomplete {
             menuItemMock.classList.add("disabled");
         }
 
-        let selectedTickImage = Redom.el("span.atmos-autocomplete-menu-item-tick") as HTMLImageElement;
+        let selectedTickImage = Redom.el("span.atmos-autocomplete-menu-item-tick");
         // If a selected image source is provided, create an image for selected options.
         Redom.mount(menuItemMock, selectedTickImage);
 
