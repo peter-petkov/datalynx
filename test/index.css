@@ -19,8 +19,8 @@ label {
     display: inline-block;
     width: 10rem;
 }
-
 /*
+
 .atmos-autocomplete-wrapper {
     margin-top: 0.5rem;
 }
@@ -39,6 +39,16 @@ label {
     padding: 0.5rem 2rem 0.5rem 0.75rem;
 }
 
+.atmos-autocomplete-input:focus {
+    border-color: transparent;
+    outline: 3px solid rgb(79, 70, 229)
+}
+
+.atmos-autocomplete-menu-toggle:before {
+    content: "";
+    display: initial;
+}
+
 .atmos-autocomplete-menu-toggle {
     background-color: transparent;
     border: none;
@@ -49,13 +59,6 @@ label {
     width: 1rem;
     background-image: url("../test/caret-down.png");
     background-size: contain;
-}
-
-.atmos-autocomplete-input:focus {
-    border-color: transparent;
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    box-shadow: rgb(255, 255, 255) 0 0 0 0, rgb(79, 70, 229) 0 0 0 2px, rgba(0, 0, 0, 0) 0 0 0 0;
 }
 
 .atmos-autocomplete-input:disabled,
@@ -122,4 +125,5 @@ label {
 .atmos-autocomplete-menu-item-tick {
     background-image: url("../test/check.png");
     background-size: contain;
-}*/
+}
+*/

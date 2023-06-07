@@ -8,7 +8,7 @@
 
 .atmos-autocomplete-input {
     width: 100%;
-    padding-right: 2rem;
+    padding: 0.3rem 2rem 0.3rem 0.5rem;
 }
 
 .atmos-autocomplete-input::-webkit-calendar-picker-indicator {
@@ -22,6 +22,11 @@
     right: 0.5rem;
     top: calc(50% - .5rem);
     height: 1rem;
+}
+
+.atmos-autocomplete-menu-toggle:before {
+    display: inline;
+    content: 'v';
 }
 
 .atmos-autocomplete-menu-toggle:not(:disabled) {
