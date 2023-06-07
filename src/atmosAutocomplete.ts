@@ -181,7 +181,9 @@ export default class AtmosAutocomplete {
         document.addEventListener("click", this.listeners.documentClickListener);
 
         // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
-        this.listeners.documentResizeListener = () => this.positionMenuMock();
+        this.listeners.documentResizeListener = () => {
+            if (!this.hidden) this.positionMenuMock();
+        };
         window.addEventListener("resize", this.listeners.documentResizeListener);
 
         // When the user clicks on the "Show all" button, clear the filter and show all entries.
