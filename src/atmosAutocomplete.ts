@@ -1,3 +1,4 @@
+// @ts-ignore
 import * as Redom from "redom";
 
 export default class AtmosAutocomplete {
