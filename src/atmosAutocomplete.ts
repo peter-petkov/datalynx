@@ -332,7 +332,10 @@ export default class AtmosAutocomplete {
         });
     }
 
-    refreshMenu() {
+    async refreshMenu() {
+        // Wait for any incomplete additions of options.
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
         this.listeners.inputListener?.(new CustomEvent("change", { detail: { filterMenu: false } }));
     }
 
