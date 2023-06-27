@@ -117,7 +117,9 @@ export default class AtmosAutocomplete {
         this.listeners.inputListener = (e?: CustomEvent) => {
             if (!this.datalistElement) return;
 
-            this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+            if (this.hidden && e?.type === "input" && this.visibleOptions) {
+                this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+            }
 
             if (e?.detail?.filterMenu !== false) {
                 this.filterMenuMock(this.inputElement.value);
@@ -537,7 +539,7 @@ export default class AtmosAutocomplete {
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent) {
+        if (option.value !== option.textContent && this.inputElement.dataset.showValues !== "false") {
             let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
         }
