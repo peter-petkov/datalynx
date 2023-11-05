@@ -167,8 +167,9 @@ export default class AtmosAutocomplete {
                 // Don't close the menu if the user clicks inside of it.
                 // Disabled for now until multiselect is implemented.
                 // return;
-                if (target.closest(".atmos-autocomplete-menu-item.disabled")) {
-                    // Don't close the menu if the user clicks on a disabled option.
+                if (target.closest(".atmos-autocomplete-menu-item.disabled") ||
+                    target.closest(".atmos-autocomplete-menu-optgroup")) {
+                    // Don't close the menu if the user clicks on a disabled option or an optgroup.
                     return;
                 }
             } else if (target.closest(".atmos-autocomplete-input") === this.inputElement) {
