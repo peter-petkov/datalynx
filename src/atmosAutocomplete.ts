@@ -26,7 +26,7 @@ export default class AtmosAutocomplete {
 
         // When focusing the input, if at least 1 option matches the input filter, show the option menu.
         this.listeners.inputFocusListener = () => {
-            if (this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
+            if (!this.inputElement.readOnly && this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
                 if (this.hidden) {
                     this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
                     this.show();
@@ -215,7 +215,7 @@ export default class AtmosAutocomplete {
 
         // Watch the input element's attributes for changes, mirroring their state in the input mock.
         this.inputElementAttributesChangeMutationObserver = new MutationObserver(() => {
-            if (this.showAllOptionsButton) this.showAllOptionsButton.disabled = inputElement.disabled;
+            if (this.showAllOptionsButton) this.showAllOptionsButton.disabled = inputElement.disabled || inputElement.readOnly;
 
             // Detect if the input element's list has been changed.
             if (this.inputElement.list) {
@@ -231,7 +231,7 @@ export default class AtmosAutocomplete {
         });
         this.inputElementAttributesChangeMutationObserver.observe(inputElement, {
             attributes: true,
-            attributeFilter: [ "disabled", "list" ]
+            attributeFilter: [ "disabled", "readonly", "list" ]
         });
 
         this.visibleOptions = this.datalistElement?.childElementCount ?? 0;
@@ -493,7 +493,7 @@ export default class AtmosAutocomplete {
         let showAllOptionsButton = Redom.el("button.atmos-autocomplete-menu-toggle", {
             tabIndex: -1,
             type: "button",
-            disabled: this.inputElement.disabled,
+            disabled: this.inputElement.disabled || this.inputElement.readOnly,
             title: "Show all"
         }) as HTMLButtonElement;
         Redom.mount(mocksWrapper, showAllOptionsButton);

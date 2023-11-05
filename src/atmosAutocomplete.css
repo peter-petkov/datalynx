@@ -24,11 +24,6 @@
     height: 1rem;
 }
 
-.atmos-autocomplete-menu-toggle:before {
-    display: inline;
-    content: 'v';
-}
-
 .atmos-autocomplete-menu-toggle:not(:disabled) {
     cursor: pointer;
 }
