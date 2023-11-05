@@ -486,6 +486,7 @@ export default class AtmosAutocomplete {
         // Create the dropdown and insert it at the end of the body element,
         // since if placed in an overflowing container it might become partly hidden.
         let menuMock = Redom.el("ul.atmos-autocomplete-menu.hidden") as HTMLUListElement;
+        if (this.inputElement.id) menuMock.dataset.origin = this.inputElement.id;
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
