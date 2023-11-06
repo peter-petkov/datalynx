@@ -29,7 +29,9 @@ export default class AtmosAutocomplete {
         this.listeners.inputFocusListener = () => {
             if (!this.inputElement.readOnly && this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
                 if (this.hidden) {
-                    this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+                    let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
+                    if (!result) return;
+
                     this.show();
                 } else if (!this.visibleOptions) {
                     this.hide();
@@ -119,7 +121,9 @@ export default class AtmosAutocomplete {
             if (!this.datalistElement) return;
 
             if (this.hidden && e?.type === "input" && this.visibleOptions) {
-                this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+                let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
+                if (!result) return;
+
             }
 
             if (e?.detail?.filterMenu !== false) {
@@ -165,7 +169,8 @@ export default class AtmosAutocomplete {
         this.showAllOptionsButton?.addEventListener("click", () => {
             if (!this.datalistElement) return;
 
-            this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete"));
+            let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
+            if (!result) return;
 
             this.filterMenuMock("");
 
