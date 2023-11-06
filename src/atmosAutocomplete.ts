@@ -3,6 +3,7 @@ import * as Redom from "redom";
 
 export default class AtmosAutocomplete {
     private static autocompletes = new Map<HTMLElement, AtmosAutocomplete>();
+    private static openedAutocomplete: AtmosAutocomplete;
 
     private inputElement: HTMLInputElement;
     private datalistElement: HTMLDataListElement;
@@ -160,36 +161,6 @@ export default class AtmosAutocomplete {
             }));
         });
 
-        // When the user clicks somewhere else, close the menu mock.
-        this.listeners.documentClickListener = (e) => {
-            let target = e.target as HTMLElement;
-            if (target.closest(".atmos-autocomplete-menu") === this.menuMock) {
-                // Don't close the menu if the user clicks inside of it.
-                // Disabled for now until multiselect is implemented.
-                // return;
-                if (target.closest(".atmos-autocomplete-menu-item.disabled") ||
-                    target.closest(".atmos-autocomplete-menu-optgroup")) {
-                    // Don't close the menu if the user clicks on a disabled option or an optgroup.
-                    return;
-                }
-            } else if (target.closest(".atmos-autocomplete-input") === this.inputElement) {
-                // Don't close the menu if the user clicks on the input.
-                return;
-            } else if (this.showAllOptionsButton && target.closest(".atmos-autocomplete-menu-toggle") === this.showAllOptionsButton) {
-                // Don't close the menu if the user clicks on the "Show all" button.
-                return;
-            }
-
-            this.hide();
-        }
-        document.addEventListener("click", this.listeners.documentClickListener);
-
-        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
-        this.listeners.documentResizeListener = () => {
-            if (!this.hidden) this.positionMenuMock();
-        };
-        window.addEventListener("resize", this.listeners.documentResizeListener);
-
         // When the user clicks on the "Show all" button, clear the filter and show all entries.
         this.showAllOptionsButton?.addEventListener("click", () => {
             if (!this.datalistElement) return;
@@ -286,6 +257,45 @@ export default class AtmosAutocomplete {
             childList: true,
             subtree: true
         });
+
+        // When the user clicks somewhere else, close the opened menu mock.        
+        document.addEventListener("click", (e) => {
+            // There is no menu open, and we don't need to execute more logic.
+            if (!AtmosAutocomplete.openedAutocomplete) return;
+
+            let target = e.target as HTMLElement;
+            if (target.closest(".atmos-autocomplete-menu") ===
+                AtmosAutocomplete.openedAutocomplete.menuMock) {
+                // Don't close the menu if the user clicks inside of it.
+                // Disabled for now until multiselect is implemented.
+                // return;
+                if (target.closest(".atmos-autocomplete-menu-item.disabled")) {
+                    // Don't close the menu if the user clicks on a disabled option.
+                    return;
+                } else if (target.closest(".atmos-autocomplete-menu-optgroup") &&
+                    !target.closest(".atmos-autocomplete-menu-item")) {
+                    return;
+                }
+            } else if (target.closest(".atmos-autocomplete-input") ===
+                AtmosAutocomplete.openedAutocomplete.inputElement) {
+                // Don't close the menu if the user clicks on the input.
+                return;
+            } else if (AtmosAutocomplete.openedAutocomplete.showAllOptionsButton &&
+                target.closest(".atmos-autocomplete-menu-toggle") ===
+                AtmosAutocomplete.openedAutocomplete.showAllOptionsButton) {
+                // Don't close the menu if the user clicks on the "Show all" button.
+                return;
+            }
+
+            AtmosAutocomplete.openedAutocomplete.hide();
+        });
+
+        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
+        window.addEventListener("resize", () => {
+            if (!AtmosAutocomplete.openedAutocomplete) return;
+
+            if (!AtmosAutocomplete.openedAutocomplete.hidden) AtmosAutocomplete.openedAutocomplete.positionMenuMock();
+        });
     }
 
     static get(element) {
@@ -295,18 +305,20 @@ export default class AtmosAutocomplete {
     hide() {
         this.menuMock.classList.add("hidden");
 
+        AtmosAutocomplete.openedAutocomplete = null;
+
         this.menuMock.dispatchEvent(new CustomEvent("hide.atmos-autocomplete"));
     }
 
     show() {
         if (!this.visibleOptions) return;
 
-        // First hide all other menu mocks, since only one needs to be shown at one time.
-        for (const [ _, autocomplete ] of AtmosAutocomplete.autocompletes) {
-            if (!autocomplete.hidden) autocomplete.hide();
-        }
+        // First hide other menu mocks, since only one needs to be shown at one time.
+        if (!AtmosAutocomplete.openedAutocomplete?.hidden) AtmosAutocomplete.openedAutocomplete?.hide();
 
         this.menuMock.classList.remove("hidden");
+
+        AtmosAutocomplete.openedAutocomplete = this;
 
         this.menuMock.dispatchEvent(new CustomEvent("show.atmos-autocomplete"));
     }
@@ -314,12 +326,23 @@ export default class AtmosAutocomplete {
     toggle() {
         if (!this.visibleOptions && this.hidden) return;
 
+        if (this.hidden) {
+            // First hide other menu mocks, since only one needs to be shown at one time.
+            if (!AtmosAutocomplete.openedAutocomplete?.hidden) AtmosAutocomplete.openedAutocomplete?.hide();
+        }
+
         this.menuMock.classList.toggle("hidden");
         this.positionMenuMock();
 
-        let customEvent = this.menuMock.classList.contains("hidden")
-            ? new CustomEvent("hide.atmos-autocomplete")
-            : new CustomEvent("show.atmos-autocomplete");
+        let customEvent: CustomEvent;
+        if (!this.menuMock.classList.contains("hidden")) {
+            customEvent = new CustomEvent("show.atmos-autocomplete");
+            AtmosAutocomplete.openedAutocomplete = this;
+        } else {
+            customEvent = new CustomEvent("hide.atmos-autocomplete");
+            AtmosAutocomplete.openedAutocomplete = null;
+        }
+
         this.menuMock.dispatchEvent(customEvent);
     }
 
@@ -345,8 +368,6 @@ export default class AtmosAutocomplete {
     destroy() {
         // First remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
-        document.removeEventListener("click", this.listeners.documentClickListener);
-        document.removeEventListener("resize", this.listeners.documentResizeListener);
         this.inputElement.removeEventListener("focus", this.listeners.inputFocusListener);
         this.inputElement.removeEventListener("input", this.listeners.inputListener);
         this.inputElement.removeEventListener("change", this.listeners.inputListener);
