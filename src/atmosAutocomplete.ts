@@ -296,6 +296,26 @@ export default class AtmosAutocomplete {
 
             if (!AtmosAutocomplete.openedAutocomplete.hidden) AtmosAutocomplete.openedAutocomplete.positionMenuMock();
         });
+
+        let initialRect: DOMRect;
+        // Scroll-linked positioning for the menu mock. Disabled until a more elegant way is found to
+        // position menu without causing so much reflow and triggering browser warnings.
+        window.addEventListener("scroll", () => {
+            if (!AtmosAutocomplete.openedAutocomplete || AtmosAutocomplete.openedAutocomplete.hidden) return;
+
+            let inputRect = AtmosAutocomplete.openedAutocomplete.inputElement.getBoundingClientRect();
+            if (!initialRect) initialRect = inputRect;
+
+            AtmosAutocomplete.openedAutocomplete.menuMock.style.transform =
+                `translate(${inputRect.right - initialRect.right}px, ${inputRect.bottom - initialRect.bottom}px)`;
+        }, { capture: true, passive: true });
+
+        window.addEventListener("scrollend", () => {
+            if (!AtmosAutocomplete.openedAutocomplete || AtmosAutocomplete.openedAutocomplete.hidden) return;
+
+            AtmosAutocomplete.openedAutocomplete.positionMenuMock();
+            initialRect = null;
+        }, { capture: true, passive: true });
     }
 
     static get(element) {
@@ -493,6 +513,8 @@ export default class AtmosAutocomplete {
         // Set the option menu's width to the input's width.
         this.menuMock.style.minWidth = `${inputRect.width}px`;
         this.menuMock.style.left = `${inputRect.left}px`;
+
+        this.menuMock.style.removeProperty("transform");
     }
 
     private generateMocks() {
