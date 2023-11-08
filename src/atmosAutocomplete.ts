@@ -123,7 +123,6 @@ export default class AtmosAutocomplete {
             if (this.hidden && e?.type === "input" && this.visibleOptions) {
                 let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
                 if (!result) return;
-
             }
 
             if (e?.detail?.filterMenu !== false) {
@@ -178,6 +177,8 @@ export default class AtmosAutocomplete {
             this.positionMenuMock();
 
             this.selectedMenuItemMock?.scrollIntoView({ block: "nearest" });
+
+            this.inputElement.focus();
         });
 
         // Watch the datalist element's options for additions or removals, mirroring the structure every time.
@@ -408,6 +409,8 @@ export default class AtmosAutocomplete {
         this.menuMock.remove();
         this.mocksWrapper.remove();
         AtmosAutocomplete.autocompletes.delete(this.inputElement);
+
+        if (AtmosAutocomplete.openedAutocomplete === this) AtmosAutocomplete.openedAutocomplete = null;
 
         this.inputElement = null;
         this.datalistElement = null;
