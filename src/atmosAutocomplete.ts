@@ -11,6 +11,7 @@ export default class AtmosAutocomplete {
     private menuMock: HTMLElement;
     private selectedMenuItemMock: HTMLLIElement;
     private showAllOptionsButton: HTMLButtonElement;
+
     private optionsChangeMutationObserver: MutationObserver;
     private inputElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
@@ -75,6 +76,8 @@ export default class AtmosAutocomplete {
                     bubbles: true,
                     detail: { filterMenu: false }
                 }));
+
+                this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
                 if (!this.visibleOptions) return;
@@ -102,6 +105,8 @@ export default class AtmosAutocomplete {
                     bubbles: true,
                     detail: { filterMenu: false }
                 }));
+
+                this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "Escape") {
                 // Close the option menu on Escape key
                 e.preventDefault();
@@ -264,17 +269,14 @@ export default class AtmosAutocomplete {
             subtree: true
         });
 
-        // When the user clicks somewhere else, close the opened menu mock.        
+        // When the user clicks somewhere else, close the opened menu mock.
         document.addEventListener("click", (e) => {
             // There is no menu open, and we don't need to execute more logic.
             if (!AtmosAutocomplete.openedAutocomplete) return;
 
             let target = e.target as HTMLElement;
-            if (target.closest(".atmos-autocomplete-menu") ===
-                AtmosAutocomplete.openedAutocomplete.menuMock) {
+            if (target.closest(".atmos-autocomplete-menu") === AtmosAutocomplete.openedAutocomplete.menuMock) {
                 // Don't close the menu if the user clicks inside of it.
-                // Disabled for now until multiselect is implemented.
-                // return;
                 if (target.closest(".atmos-autocomplete-menu-item.disabled")) {
                     // Don't close the menu if the user clicks on a disabled option.
                     return;
@@ -613,12 +615,7 @@ export default class AtmosAutocomplete {
         }
 
         let selectedTickImage = Redom.el("span.atmos-autocomplete-menu-item-tick");
-        // If a selected image source is provided, create an image for selected options.
         Redom.mount(menuItemMock, selectedTickImage);
-
-        // Apply the custom class provided by the input element's dataset.
-        if (this.inputElement.dataset.menuItemClass)
-            menuItemMock.classList.add(this.inputElement.dataset.menuItemClass);
 
         this.menuItemMocks.push(menuItemMock);
     }
