@@ -30,7 +30,12 @@ export default class AtmosAutocomplete {
         this.listeners.inputFocusListener = () => {
             if (!this.inputElement.readOnly && this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
                 if (this.hidden) {
-                    let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
+                    let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", {
+                        detail: {
+                            filter: this.inputElement.value
+                        },
+                        cancelable: true
+                    }));
                     if (!result) return;
 
                     this.show();
@@ -126,7 +131,12 @@ export default class AtmosAutocomplete {
             if (!this.datalistElement) return;
 
             if (this.hidden && e?.type === "input" && this.visibleOptions) {
-                let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
+                let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", {
+                    detail: {
+                        filter: this.inputElement.value
+                    },
+                    cancelable: true
+                }));
                 if (!result) return;
             }
 
@@ -173,7 +183,12 @@ export default class AtmosAutocomplete {
         this.showAllOptionsButton?.addEventListener("click", () => {
             if (!this.datalistElement) return;
 
-            let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", { cancelable: true }));
+            let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", {
+                detail: {
+                    filter: ""
+                },
+                cancelable: true
+            }));
             if (!result) return;
 
             this.filterMenuMock("");
