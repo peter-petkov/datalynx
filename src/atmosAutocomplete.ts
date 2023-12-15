@@ -569,14 +569,6 @@ export default class AtmosAutocomplete {
         Redom.mount(mocksWrapper, showAllOptionsButton);
         this.showAllOptionsButton = showAllOptionsButton;
 
-        // Apply the custom classes provided by the input element's dataset.
-        if (this.inputElement.dataset.wrapperClass)
-            mocksWrapper.classList.add(this.inputElement.dataset.wrapperClass);
-        if (this.inputElement.dataset.menuClass)
-            menuMock.classList.add(this.inputElement.dataset.menuClass);
-        if (this.inputElement.dataset.showAllButtonClass)
-            this.showAllOptionsButton.classList.add(this.inputElement.dataset.showAllButtonClass);
-
         // Generate the option elements in the dropdown
         this.generateOptionMocks();
     }
