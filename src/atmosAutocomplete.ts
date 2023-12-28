@@ -2,7 +2,7 @@
 import * as Redom from "redom";
 
 export default class AtmosAutocomplete {
-    private static autocompletes = new Map<HTMLElement, AtmosAutocomplete>();
+    private static autocompletes = new Map<HTMLInputElement, AtmosAutocomplete>();
     private static openedAutocomplete: AtmosAutocomplete;
 
     private inputElement: HTMLInputElement;
@@ -164,7 +164,7 @@ export default class AtmosAutocomplete {
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
         this.menuMock.addEventListener("click", e => {
-            if (!this.datalistElement) return;
+            if (!this.datalistElement || this.inputElement.dataset.suggest?.toLowerCase() === "true") return;
 
             let target = (<HTMLElement>e.target).closest<HTMLLIElement>(".atmos-autocomplete-menu-item");
             if (!target) return;
@@ -253,7 +253,7 @@ export default class AtmosAutocomplete {
         new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const addedNode of mutation.addedNodes) {
-                    if (!(addedNode instanceof HTMLElement)) continue;
+                    if (!(addedNode instanceof HTMLInputElement)) continue;
 
                     let toggles = [];
                     if (addedNode.dataset?.toggles === "autocomplete") toggles.push(addedNode as HTMLInputElement);
@@ -268,7 +268,7 @@ export default class AtmosAutocomplete {
                 }
 
                 for (const removedNode of mutation.removedNodes) {
-                    if (!(removedNode instanceof HTMLElement)) continue;
+                    if (!(removedNode instanceof HTMLInputElement)) continue;
 
                     let toggles = [];
                     if (removedNode.dataset?.toggles === "autocomplete") toggles.push(removedNode as HTMLInputElement);
@@ -297,6 +297,8 @@ export default class AtmosAutocomplete {
                     return;
                 } else if (target.closest(".atmos-autocomplete-menu-optgroup") &&
                     !target.closest(".atmos-autocomplete-menu-item")) {
+                    return;
+                } else if (target.closest(".atmos-autocomplete-menu.readonly")) {
                     return;
                 }
             } else if (target.closest(".atmos-autocomplete-input") ===
@@ -341,7 +343,7 @@ export default class AtmosAutocomplete {
         // }, { capture: true, passive: true });
     }
 
-    static get(element) {
+    static get(element: HTMLInputElement) {
         return this.autocompletes.get(element);
     }
 
@@ -556,6 +558,7 @@ export default class AtmosAutocomplete {
         // since if placed in an overflowing container it might become partly hidden.
         let menuMock = Redom.el("ul.atmos-autocomplete-menu.hidden") as HTMLUListElement;
         if (this.inputElement.id) menuMock.dataset.origin = this.inputElement.id;
+        if (this.inputElement.dataset.suggest?.toLowerCase() === "true") menuMock.classList.add("readonly");
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
@@ -601,7 +604,7 @@ export default class AtmosAutocomplete {
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent && this.inputElement.dataset.showValues !== "false") {
+        if (option.value !== option.textContent && this.inputElement.dataset.showValues === "true") {
             let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
         }

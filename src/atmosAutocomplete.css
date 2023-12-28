@@ -42,7 +42,6 @@
     display: flex;
     padding: .25rem .5rem;
     align-items: center;
-    cursor: pointer;
 }
 
 .atmos-autocomplete-menu-item.disabled {
@@ -50,8 +49,9 @@
     color: #808080;
 }
 
-.atmos-autocomplete-menu-item:not(.disabled):not(.selected):hover {
+.atmos-autocomplete-menu:not(.readonly) .atmos-autocomplete-menu-item:not(.disabled):not(.selected):hover {
     background-color: #e6e6e6;
+    cursor: pointer;
 }
 
 .atmos-autocomplete-menu-item.selected {
@@ -88,3 +88,5 @@
 .atmos-autocomplete-menu-item:not(.selected) .atmos-autocomplete-menu-item-tick {
     visibility: hidden;
 }
+
+.atmos-autocomplete-menu-item
