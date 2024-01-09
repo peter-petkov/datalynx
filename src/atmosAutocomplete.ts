@@ -7,7 +7,6 @@ export default class AtmosAutocomplete {
 
     private inputElement: HTMLInputElement;
     private datalistElement: HTMLDataListElement;
-    private mocksWrapper: HTMLElement;
     private menuMock: HTMLElement;
     private selectedMenuItemMock: HTMLLIElement;
     private showAllOptionsButton: HTMLButtonElement;
@@ -51,7 +50,7 @@ export default class AtmosAutocomplete {
         this.inputElement.addEventListener("focus", this.listeners.inputFocusListener);
 
         // Keyboard navigation to match the native select element's feature
-        this.mocksWrapper.addEventListener("keydown", (e) => {
+        this.listeners.keydownListener = (e) => {
             if (!this.datalistElement) return;
 
             if (e.code === "ArrowDown") {
@@ -123,7 +122,8 @@ export default class AtmosAutocomplete {
             } else if (e.code === "Tab") {
                 this.hide()
             }
-        });
+        };
+        this.inputElement.addEventListener("keydown", this.listeners.keydownListener);
 
         // When the user inputs a value to the autocomplete input, filter the menu mock
         // to only show options that match (partially or fully) the typed value.
@@ -261,7 +261,7 @@ export default class AtmosAutocomplete {
         new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const addedNode of mutation.addedNodes) {
-                    if (!(addedNode instanceof HTMLInputElement)) continue;
+                    if (!(addedNode instanceof HTMLElement)) continue;
 
                     let toggles = [];
                     if (addedNode.dataset?.toggle === "autocomplete") toggles.push(addedNode as HTMLInputElement);
@@ -276,7 +276,7 @@ export default class AtmosAutocomplete {
                 }
 
                 for (const removedNode of mutation.removedNodes) {
-                    if (!(removedNode instanceof HTMLInputElement)) continue;
+                    if (!(removedNode instanceof HTMLElement)) continue;
 
                     let toggles = [];
                     if (removedNode.dataset?.toggle === "autocomplete") toggles.push(removedNode as HTMLInputElement);
@@ -424,6 +424,7 @@ export default class AtmosAutocomplete {
         this.inputElement.removeEventListener("focus", this.listeners.inputFocusListener);
         this.inputElement.removeEventListener("input", this.listeners.inputListener);
         this.inputElement.removeEventListener("change", this.listeners.inputListener);
+        this.inputElement.removeEventListener("keydown", this.listeners.keydownListener);
 
         // Disconnect all associated mutation observers.
         this.optionsChangeMutationObserver.disconnect();
@@ -432,16 +433,14 @@ export default class AtmosAutocomplete {
         if (this.datalistElement) this.inputElement.setAttribute("list", this.datalistElement.id);
 
         // Remove the mocks from the DOM tree and the autocomplete collection.
-        this.mocksWrapper.insertAdjacentElement("afterend", this.inputElement);
         this.menuMock.remove();
-        this.mocksWrapper.remove();
+        this.showAllOptionsButton.remove();
         AtmosAutocomplete.autocompletes.delete(this.inputElement);
 
         if (AtmosAutocomplete.openedAutocomplete === this) AtmosAutocomplete.openedAutocomplete = null;
 
         this.inputElement = null;
         this.datalistElement = null;
-        this.mocksWrapper = null;
         this.menuMock = null;
         this.selectedMenuItemMock = null;
         this.showAllOptionsButton = null;
@@ -553,14 +552,8 @@ export default class AtmosAutocomplete {
     }
 
     private generateMocks() {
-        let mocksWrapper = Redom.el("div.atmos-autocomplete-wrapper");
-        // Insert the autocomplete wrapper mock right after the input element.
-        this.inputElement.insertAdjacentElement("afterend", mocksWrapper);
-        this.mocksWrapper = mocksWrapper;
-
         this.inputElement.classList.add("atmos-autocomplete-input");
         this.inputElement.removeAttribute("list");
-        mocksWrapper.appendChild(this.inputElement);
 
         // Create the dropdown and insert it at the end of the body element,
         // since if placed in an overflowing container it might become partly hidden.
@@ -577,7 +570,7 @@ export default class AtmosAutocomplete {
             disabled: this.inputElement.disabled || this.inputElement.readOnly,
             title: "Show all"
         }) as HTMLButtonElement;
-        Redom.mount(mocksWrapper, showAllOptionsButton);
+        this.inputElement.insertAdjacentElement("afterend", showAllOptionsButton);
         this.showAllOptionsButton = showAllOptionsButton;
 
         // Generate the option elements in the dropdown

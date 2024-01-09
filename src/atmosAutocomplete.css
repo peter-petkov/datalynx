@@ -2,10 +2,6 @@
     display: none !important;
 }
 
-.atmos-autocomplete-wrapper {
-    position: relative;
-}
-
 .atmos-autocomplete-input {
     width: 100%;
     padding: 0.3rem 2rem 0.3rem 0.5rem;
@@ -88,5 +84,3 @@
 .atmos-autocomplete-menu-item:not(.selected) .atmos-autocomplete-menu-item-tick {
     visibility: hidden;
 }
-
-.atmos-autocomplete-menu-item

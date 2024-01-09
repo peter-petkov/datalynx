@@ -29,11 +29,12 @@ label {
     background-image: url("../test/caret-down.png");
     background-size: contain;
 }
-/*
 
-.atmos-autocomplete-wrapper {
-    margin-top: 0.5rem;
+.input-wrapper {
+    display: block;
+    position: relative;
 }
+/*
 
 .atmos-autocomplete-input {
     display: block;
