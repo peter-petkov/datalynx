@@ -164,7 +164,7 @@ export default class AtmosAutocomplete {
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
         this.menuMock.addEventListener("click", e => {
-            if (!this.datalistElement || this.inputElement.dataset.suggest?.toLowerCase() === "true") return;
+            if (!this.datalistElement || this.isSuggestModeEnabled) return;
 
             let target = (<HTMLElement>e.target).closest<HTMLLIElement>(".atmos-autocomplete-menu-item");
             if (!target) return;
@@ -237,6 +237,14 @@ export default class AtmosAutocomplete {
         AtmosAutocomplete.autocompletes.set(inputElement, this);
     }
 
+    private get isSuggestModeEnabled() {
+        return this.inputElement.dataset.suggest?.toLowerCase() === "true";
+    }
+
+    private get isSubtextShown() {
+        return this.inputElement.dataset.subtext === "true";
+    }
+
     private get hidden() {
         return this.menuMock.classList.contains("hidden");
     }
@@ -256,7 +264,7 @@ export default class AtmosAutocomplete {
                     if (!(addedNode instanceof HTMLInputElement)) continue;
 
                     let toggles = [];
-                    if (addedNode.dataset?.toggles === "autocomplete") toggles.push(addedNode as HTMLInputElement);
+                    if (addedNode.dataset?.toggle === "autocomplete") toggles.push(addedNode as HTMLInputElement);
                     toggles.push(...addedNode.querySelectorAll<HTMLInputElement>("[data-toggle=autocomplete]"));
 
                     for (const toggle of toggles) {
@@ -271,7 +279,7 @@ export default class AtmosAutocomplete {
                     if (!(removedNode instanceof HTMLInputElement)) continue;
 
                     let toggles = [];
-                    if (removedNode.dataset?.toggles === "autocomplete") toggles.push(removedNode as HTMLInputElement);
+                    if (removedNode.dataset?.toggle === "autocomplete") toggles.push(removedNode as HTMLInputElement);
                     toggles.push(...removedNode.querySelectorAll<HTMLInputElement>("[data-toggle=autocomplete]"));
 
                     for (const toggle of toggles) {
@@ -558,7 +566,7 @@ export default class AtmosAutocomplete {
         // since if placed in an overflowing container it might become partly hidden.
         let menuMock = Redom.el("ul.atmos-autocomplete-menu.hidden") as HTMLUListElement;
         if (this.inputElement.id) menuMock.dataset.origin = this.inputElement.id;
-        if (this.inputElement.dataset.suggest?.toLowerCase() === "true") menuMock.classList.add("readonly");
+        if (this.isSuggestModeEnabled) menuMock.classList.add("readonly");
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
@@ -604,7 +612,7 @@ export default class AtmosAutocomplete {
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent && this.inputElement.dataset.showValues === "true") {
+        if (option.value !== option.textContent && this.isSubtextShown) {
             let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
         }
