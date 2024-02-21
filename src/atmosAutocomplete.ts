@@ -238,7 +238,7 @@ export default class AtmosAutocomplete {
     }
 
     private get isSuggestModeEnabled() {
-        return this.inputElement.dataset.suggest?.toLowerCase() === "true";
+        return this.inputElement.dataset.suggest === "true";
     }
 
     private get isSubtextShown() {
@@ -493,8 +493,11 @@ export default class AtmosAutocomplete {
             // First normalize the values before comparing them.
             let normalizedOptionText = menuItemMock.datalistOption.textContent.toLowerCase().trim();
             let normalizedOptionValue = menuItemMock.datalistOption.value.toLowerCase().trim();
+            let normalizedOptionSubtext = menuItemMock.datalistOption.dataset.subtext?.toLowerCase().trim() ?? "";
             let normalizedText = value.toLowerCase().trim();
-            if (menuItemMock.datalistOption.textContent === value || menuItemMock.datalistOption.value === value) {
+            if (menuItemMock.datalistOption.textContent === value ||
+                menuItemMock.datalistOption.dataset.subtext === value ||
+                menuItemMock.datalistOption.value === value) {
                 // Case in which we have a perfectly matching option.
                 // Show the option mock.
                 menuItemMock.classList.remove("hidden");
@@ -502,7 +505,9 @@ export default class AtmosAutocomplete {
                     menuItemMock.parentElement.classList.remove("hidden");
 
                 this.visibleOptions++;
-            } else if (normalizedOptionText.includes(normalizedText) || normalizedOptionValue.includes(normalizedText)) {
+            } else if (normalizedOptionText.includes(normalizedText) ||
+                normalizedOptionSubtext.includes(normalizedText) ||
+                normalizedOptionValue.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
                 menuItemMock.classList.remove("hidden");
                 if (menuItemMock.parentElement.classList.contains("atmos-autocomplete-menu-optgroup"))
@@ -600,14 +605,17 @@ export default class AtmosAutocomplete {
 
     private generateOptionMock(parent: HTMLElement, option: HTMLOptionElement) {
         // Create an option element with its tick box, which will remain hidden until the element is selected.
-        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-autocomplete-menu-item", option.textContent, {
+        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-autocomplete-menu-item", {
             title: option.title
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent && this.isSubtextShown) {
-            let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.value);
-            Redom.mount(menuItemMock, menuItemSubtext);
+        let textMock = Redom.el("span", option.textContent);
+        Redom.mount(menuItemMock, textMock);
+
+        if (this.isSubtextShown && (option.dataset.subtext || option.value !== option.textContent)) {
+            let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.dataset.subtext || option.value);
+            Redom.mount(textMock, menuItemSubtext);
         }
 
         menuItemMock["datalistOption"] = option;
