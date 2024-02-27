@@ -411,11 +411,13 @@ export default class AtmosAutocomplete {
         });
     }
 
-    async refreshMenu() {
-        // Wait for any incomplete additions of options.
-        await new Promise(resolve => requestAnimationFrame(resolve));
+    refreshMenu() {
+        let selectedOption = this.menuItemMocks
+            .find(o => !o.datalistOption.disabled && o.datalistOption.textContent.trim() === this.inputElement.value.trim());
 
-        this.listeners.inputListener?.(new CustomEvent("change", { detail: { filterMenu: false } }));
+        this.updateMenuMock(selectedOption);
+
+        this.updateInputElementTitle(this.selectedMenuItemMock?.title);
     }
 
     destroy() {
@@ -464,6 +466,11 @@ export default class AtmosAutocomplete {
         console.debug(`Update menu's options.`);
 
         for (const menuItemMock of this.menuItemMocks) {
+            menuItemMock.children[0].childNodes[0].textContent = menuItemMock.datalistOption.textContent;
+            let valueSubtextElement = menuItemMock.querySelector(".atmos-autocomplete-menu-item-value");
+            if (valueSubtextElement)
+                valueSubtextElement.textContent = menuItemMock.datalistOption.dataset.subtext || menuItemMock.datalistOption.value;
+
             menuItemMock?.classList.remove("selected");
         }
 
