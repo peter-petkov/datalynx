@@ -27,7 +27,9 @@ export default class AtmosAutocomplete {
 
         // When focusing the input, if at least 1 option matches the input filter, show the option menu.
         this.listeners.inputFocusListener = () => {
-            if (!this.inputElement.readOnly && this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
+            if (this.shouldOpenOnFocus &&
+                !this.inputElement.readOnly &&
+                this.menuItemMocks.some(c => !c.classList.contains("hidden"))) {
                 if (this.hidden) {
                     let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", {
                         detail: {
@@ -243,6 +245,10 @@ export default class AtmosAutocomplete {
         this.visibleOptions = this.datalistElement?.childElementCount ?? 0;
 
         AtmosAutocomplete.autocompletes.set(inputElement, this);
+    }
+
+    private get shouldOpenOnFocus() {
+        return this.inputElement.dataset.focusOpen !== "false";
     }
 
     private get isSuggestModeEnabled() {
