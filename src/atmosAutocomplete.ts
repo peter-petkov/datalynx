@@ -488,7 +488,16 @@ export default class AtmosAutocomplete {
         console.debug(`Update menu's options.`);
 
         for (const menuItemMock of this.menuItemMocks) {
-            menuItemMock.children[0].childNodes[0].textContent = menuItemMock.datalistOption.textContent;
+            // The option mock might not have a text or value because
+            // the datalist option does not have one either.
+            if (!menuItemMock.children[0].childNodes[0]) {
+                // In this case childNodes[0] will return undefined because
+                // there is no text node there. Instead, we create it here.
+                menuItemMock.children[0].insertAdjacentHTML("afterbegin", menuItemMock.datalistOption.textContent);
+            } else {
+                menuItemMock.children[0].childNodes[0].textContent = menuItemMock.datalistOption.textContent;
+            }
+
             let valueSubtextElement = menuItemMock.querySelector(".atmos-autocomplete-menu-item-value");
             if (valueSubtextElement)
                 valueSubtextElement.textContent = menuItemMock.datalistOption.dataset.subtext || menuItemMock.datalistOption.value;
