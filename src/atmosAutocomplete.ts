@@ -720,7 +720,7 @@ export default class AtmosAutocomplete {
                 valueToTestFor);
         }
     }
-    
+
     private createOrModifyHighlightRange(textNode: Text, optionText: string, value: string) {
         if (!textNode.highlightRange) {
             textNode.highlightRange = new Range();
