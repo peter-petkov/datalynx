@@ -13,6 +13,8 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background-color: #282828;
+    color: #c2c2c2;
 }
 
 label {
@@ -33,6 +35,31 @@ label {
 .input-wrapper {
     display: block;
     position: relative;
+}
+
+.atmos-autocomplete-input {
+    background-color: #505050;
+    color: #e9e9e9;
+}
+
+.atmos-autocomplete-menu-toggle {
+    background-color: #a7a7a7;
+}
+
+.atmos-autocomplete-menu {
+    background-color: #3c3c3c;
+}
+
+.atmos-autocomplete-menu-item.selected {
+    background-color: #505050;
+}
+
+.atmos-autocomplete-menu:not(.readonly) .atmos-autocomplete-menu-item:not(.disabled):not(.selected):hover {
+    background-color: #454545;
+}
+
+.atmos-autocomplete-menu-item-value {
+    color: #a7a7a7;
 }
 /*
 
