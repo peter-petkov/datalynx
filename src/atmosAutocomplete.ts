@@ -197,7 +197,7 @@ export default class AtmosAutocomplete {
             }));
             if (!result) return;
 
-            this.filterMenuMock("");
+            this.filterMenuMock("", false);
 
             if (this.hidden) this.show();
             this.positionMenuMock();
@@ -501,19 +501,22 @@ export default class AtmosAutocomplete {
         console.debug(`Update menu's options.`);
 
         for (const menuItemMock of this.menuItemMocks) {
-            // The option mock might not have a text or value because
-            // the datalist option does not have one either.
-            if (!menuItemMock.children[0].childNodes[0]) {
-                // In this case childNodes[0] will return undefined because
-                // there is no text node there. Instead, we create it here.
-                menuItemMock.children[0].insertAdjacentHTML("afterbegin", menuItemMock.datalistOption.textContent);
-            } else if (menuItemMock.children[0].childNodes[0].textContent !== menuItemMock.datalistOption.textContent) {
-                menuItemMock.children[0].childNodes[0].textContent = menuItemMock.datalistOption.textContent;
+            let itemText = menuItemMock.querySelector(".atmos-autocomplete-menu-item-text");
+            if (itemText.textContent !== menuItemMock.datalistOption.textContent) {
+                // The option mock might not have a text or value because
+                // the datalist option does not have one either.
+                itemText.textContent = menuItemMock.datalistOption.textContent;
             }
 
-            let valueSubtextElement = menuItemMock.querySelector(".atmos-autocomplete-menu-item-value");
-            if (valueSubtextElement)
-                valueSubtextElement.textContent = menuItemMock.datalistOption.dataset.subtext || menuItemMock.datalistOption.value;
+            let valueToTestAgainst = menuItemMock.datalistOption.dataset.subtext ||
+                (itemText.textContent !==
+                menuItemMock.datalistOption.value ?
+                    menuItemMock.datalistOption.value :
+                    undefined);
+            let itemSubtext = menuItemMock.querySelector(".atmos-autocomplete-menu-item-value");
+            if (itemSubtext && valueToTestAgainst && itemSubtext.textContent !== valueToTestAgainst) {
+                itemSubtext.textContent = valueToTestAgainst;
+            }
 
             menuItemMock?.classList.remove("selected");
         }
@@ -524,7 +527,7 @@ export default class AtmosAutocomplete {
         this.selectedMenuItemMock = selectedOption;
     }
 
-    private filterMenuMock(value: string) {
+    private filterMenuMock(value: string, clearHighlights = true) {
         console.debug(`Filtering menu.`);
 
         this.visibleOptions = 0;
@@ -536,7 +539,7 @@ export default class AtmosAutocomplete {
             }
 
             this.visibleOptions = this.datalistElement.children.length;
-            AtmosAutocomplete.customHighlight?.clear();
+            if (clearHighlights) AtmosAutocomplete.customHighlight?.clear();
             return;
         }
 
@@ -681,7 +684,7 @@ export default class AtmosAutocomplete {
 
         if (this.isSubtextShown && (option.dataset.subtext || option.value !== option.textContent)) {
             let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.dataset.subtext || option.value);
-            Redom.mount(textMock, menuItemSubtext);
+            Redom.mount(menuItemMock, menuItemSubtext);
         }
 
         menuItemMock["datalistOption"] = option;
@@ -722,6 +725,8 @@ export default class AtmosAutocomplete {
     }
 
     private createOrModifyHighlightRange(textNode: Text, optionText: string, value: string) {
+        if (!textNode) return;
+
         if (!textNode.highlightRange) {
             textNode.highlightRange = new Range();
         }
