@@ -500,12 +500,15 @@ export default class AtmosAutocomplete {
     private updateMenuMock(selectedOption: HTMLLIElement) {
         console.debug(`Update menu's options.`);
 
+        let value = this.inputElement.value.trim().toLowerCase();
         for (const menuItemMock of this.menuItemMocks) {
+            let hasContentBeenUpdated = false;
             let itemText = menuItemMock.querySelector(".atmos-autocomplete-menu-item-text");
             if (itemText.textContent !== menuItemMock.datalistOption.textContent) {
                 // The option mock might not have a text or value because
                 // the datalist option does not have one either.
                 itemText.textContent = menuItemMock.datalistOption.textContent;
+                hasContentBeenUpdated = true;
             }
 
             let valueToTestAgainst = menuItemMock.datalistOption.dataset.subtext ||
@@ -516,9 +519,17 @@ export default class AtmosAutocomplete {
             let itemSubtext = menuItemMock.querySelector(".atmos-autocomplete-menu-item-value");
             if (itemSubtext && valueToTestAgainst && itemSubtext.textContent !== valueToTestAgainst) {
                 itemSubtext.textContent = valueToTestAgainst;
+                hasContentBeenUpdated = true;
             }
 
             menuItemMock?.classList.remove("selected");
+            if (hasContentBeenUpdated && value) {
+                this.adjustHighlightRange(menuItemMock,
+                    menuItemMock.datalistOption.textContent.trim().toLowerCase(),
+                    menuItemMock.datalistOption.dataset.subtext?.trim().toLowerCase(),
+                    menuItemMock.datalistOption.value.trim().toLowerCase(),
+                    value);
+            }
         }
 
         this.selectedMenuItemMock = null;
@@ -704,6 +715,15 @@ export default class AtmosAutocomplete {
 
         let selectedTickImage = Redom.el("span.atmos-autocomplete-menu-item-tick");
         Redom.mount(menuItemMock, selectedTickImage);
+
+        let value = this.inputElement.value.trim().toLowerCase();
+        if (value) {
+            this.adjustHighlightRange(menuItemMock,
+                option.textContent.trim().toLowerCase(),
+                option.dataset.subtext?.trim().toLowerCase(),
+                option.value.trim().toLowerCase(),
+                value);
+        }
 
         this.menuItemMocks.push(menuItemMock);
     }
