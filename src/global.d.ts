@@ -1,7 +1,5 @@
 interface HTMLLIElement {
     datalistOption: HTMLOptionElement;
-}
-
-interface Text {
-    highlightRange: Range;
+    textHighlightRange: Range;
+    subtextHighlightRange: Range;
 }
