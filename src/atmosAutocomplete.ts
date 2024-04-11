@@ -495,7 +495,11 @@ export default class AtmosAutocomplete {
     private updateInputElementTitle(value: string) {
         if (!value === null || value === undefined) value = "";
 
-        this.inputElement.title = value?.toString();
+        if (value?.toString()) {
+            this.inputElement.title = value?.toString();
+        } else {
+            this.inputElement.removeAttribute("title");
+        }
     }
 
     private updateMenuMock(selectedOption: HTMLLIElement) {
@@ -668,6 +672,7 @@ export default class AtmosAutocomplete {
 
     private generateOptionMocks() {
         Redom.setChildren(this.menuMock, []);
+        AtmosAutocomplete.customHighlight?.clear();
         if (!this.datalistElement) return;
         this.menuItemMocks = [];
 
@@ -689,9 +694,9 @@ export default class AtmosAutocomplete {
 
     private generateOptionMock(parent: HTMLElement, option: HTMLOptionElement) {
         // Create an option element with its tick box, which will remain hidden until the element is selected.
-        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-autocomplete-menu-item", {
-            title: option.title
-        });
+        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-autocomplete-menu-item");
+        if (option.title) menuItemMock.title = option.title;
+
         Redom.mount(parent, menuItemMock);
 
         let textMock = Redom.el("span.atmos-autocomplete-menu-item-text", option.textContent);

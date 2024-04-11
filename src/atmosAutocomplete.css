@@ -85,7 +85,8 @@
     visibility: hidden;
 }
 
-::highlight(atmos-autocomplete-highlight) {
+.atmos-autocomplete-menu-item-text::highlight(atmos-autocomplete-highlight),
+.atmos-autocomplete-menu-item-value::highlight(atmos-autocomplete-highlight) {
     background-color: #FEE6B1;
     color: black;
 }
