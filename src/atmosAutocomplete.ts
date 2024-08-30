@@ -636,10 +636,19 @@ export default class AtmosAutocomplete {
             this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
         }
 
+        let left = inputRect.left;
+        if (inputRect.left + menuRect.width + 15 > window.innerWidth) {
+            // If there isn't enough space to position the menu below the button mock, position it above it instead.
+            left -= inputRect.left + menuRect.width + 15 + window.scrollY - window.innerWidth;
+        } else {
+            // Else position the menu directly below the button element, with a little margin.
+            this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+        }
+
         console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
         // Set the option menu's width to the input's width.
         this.menuMock.style.minWidth = `${inputRect.width}px`;
-        this.menuMock.style.left = `${inputRect.left}px`;
+        this.menuMock.style.left = `${left}px`;
 
         this.menuMock.style.removeProperty("transform");
     }
