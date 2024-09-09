@@ -264,6 +264,10 @@ export default class AtmosAutocomplete {
         return this.inputElement.dataset.subtext === "true";
     }
 
+    private get menuPosition() {
+        return this.inputElement.dataset.menuPosition ?? "";
+    }
+
     private get hidden() {
         return this.menuMock.classList.contains("hidden");
     }
@@ -624,25 +628,35 @@ export default class AtmosAutocomplete {
         let menuRect = this.menuMock.getBoundingClientRect();
 
         if (inputRect.bottom + menuRect.height + 15 > window.innerHeight && inputRect.top - 15 < menuRect.height) {
-            // If the menu can't be positioned either on top or bottom of the input mock,
-            // position it below the input and limit its height.
-            this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
-            this.menuMock.style.height = `${window.innerHeight - inputRect.bottom - 10}px`;
+            // If the menu can't be positioned either on top or bottom of the input element,
+            if (this.menuPosition === "up") {
+                // Position it above the input and limit its height.
+                this.menuMock.style.top = `${window.scrollY + 5}px`;
+                this.menuMock.style.height = `${inputRect.top - 10}px`;
+            } else {
+                // Position it below the input and limit its height.
+                this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+                this.menuMock.style.height = `${window.innerHeight - inputRect.bottom - 10}px`;
+            }
         } else if (inputRect.bottom + menuRect.height + 15 > window.innerHeight) {
-            // If there isn't enough space to position the menu below the input mock, position it above it instead.
+            // If there isn't enough space to position the menu below the input element, position it above it instead.
             this.menuMock.style.top = `${inputRect.top - menuRect.height - 5 + window.scrollY}px`;
-        } else {
-            // Else position the menu directly below the input element, with a little margin.
+        } else if (this.menuPosition === "up" && inputRect.top - 15 < menuRect.height) {
             this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+        } else {
+            if (this.menuPosition === "up") {
+                // Else position the menu directly above the input element, with a little margin.
+                this.menuMock.style.top = `${inputRect.top - menuRect.height - 5 + window.scrollY}px`;
+            } else {
+                // Else position the menu directly below the input element, with a little margin.
+                this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+            }
         }
 
         let left = inputRect.left;
         if (inputRect.left + menuRect.width + 15 > window.innerWidth) {
-            // If there isn't enough space to position the menu below the button mock, position it above it instead.
+            // If there isn't enough space to position the menu next to the input element, shift it slightly.
             left -= inputRect.left + menuRect.width + 15 + window.scrollY - window.innerWidth;
-        } else {
-            // Else position the menu directly below the button element, with a little margin.
-            this.menuMock.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
         }
 
         console.debug(`Positioning menu to ${inputRect.width}, ${inputRect.left}.`);
