@@ -353,25 +353,29 @@ export default class AtmosAutocomplete {
             if (!AtmosAutocomplete.openedAutocomplete.hidden) AtmosAutocomplete.openedAutocomplete.positionMenuMock();
         });
 
-        // let initialRect: DOMRect;
-        // // Scroll-linked positioning for the menu mock. Disabled until a more elegant way is found to
-        // // position menu without causing so much reflow and triggering browser warnings.
-        // window.addEventListener("scroll", (e) => {
-        //     if (!AtmosAutocomplete.openedAutocomplete || AtmosAutocomplete.openedAutocomplete.hidden || e.target === AtmosAutocomplete.openedAutocomplete.menuMock) return;
-        //
-        //     let inputRect = AtmosAutocomplete.openedAutocomplete.inputElement.getBoundingClientRect();
-        //     if (!initialRect) initialRect = inputRect;
-        //
-        //     AtmosAutocomplete.openedAutocomplete.menuMock.style.transform =
-        //         `translate(${inputRect.right - initialRect.right}px, ${inputRect.bottom - initialRect.bottom}px)`;
-        // }, { capture: true, passive: true });
-        //
-        // window.addEventListener("scrollend", (e) => {
-        //     if (!AtmosAutocomplete.openedAutocomplete || AtmosAutocomplete.openedAutocomplete.hidden || e.target === AtmosAutocomplete.openedAutocomplete.menuMock) return;
-        //
-        //     AtmosAutocomplete.openedAutocomplete.positionMenuMock();
-        //     initialRect = null;
-        // }, { capture: true, passive: true });
+        let initialRect: DOMRect;
+        // Scroll-linked positioning for the menu mock. Triggers warnings in Firefox!!!.
+        window.addEventListener("scroll", (e) => {
+            if (!AtmosAutocomplete.openedAutocomplete ||
+                AtmosAutocomplete.openedAutocomplete.hidden ||
+                e.target === AtmosAutocomplete.openedAutocomplete.menuMock) return;
+
+            let inputRect = AtmosAutocomplete.openedAutocomplete.inputElement.getBoundingClientRect();
+            if (!initialRect) initialRect = inputRect;
+
+            if (e.target !== document)
+                AtmosAutocomplete.openedAutocomplete.menuMock.style.transform =
+                    `translate(${inputRect.right - initialRect.right}px, ${inputRect.bottom - initialRect.bottom}px)`;
+        }, { capture: true, passive: true });
+
+        window.addEventListener("scrollend", (e) => {
+            if (!AtmosAutocomplete.openedAutocomplete ||
+                AtmosAutocomplete.openedAutocomplete.hidden ||
+                e.target === AtmosAutocomplete.openedAutocomplete.menuMock) return;
+
+            AtmosAutocomplete.openedAutocomplete.positionMenuMock();
+            initialRect = null;
+        }, { capture: true, passive: true });
 
 
         // @ts-ignore Not yet in DOM typings.
