@@ -55,7 +55,7 @@ export default class AtmosAutocomplete {
         this.inputElement.addEventListener("focus", this.listeners.inputFocusListener);
 
         // Keyboard navigation to match the native select element's feature
-        this.listeners.keydownListener = (e) => {
+        this.listeners.keydownListener = (e: KeyboardEvent) => {
             if (!this.datalistElement) return;
 
             if (e.code === "ArrowDown") {
@@ -95,7 +95,7 @@ export default class AtmosAutocomplete {
                 // or cycle back to the last visible one.
                 let nextOption = this.selectedMenuItemMock;
                 let i = this.menuItemMocks.indexOf(nextOption);
-                let previousOption;
+                let previousOption: HTMLLIElement;
                 do {
                     previousOption = nextOption;
                     nextOption = this.menuItemMocks[--i] as HTMLLIElement;
@@ -117,7 +117,7 @@ export default class AtmosAutocomplete {
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "Escape") {
-                // Close the option menu on Escape key
+                // Close the option menu on an Escape key
                 e.preventDefault();
                 this.hide();
             } else if (e.code === "Enter") {
@@ -218,6 +218,7 @@ export default class AtmosAutocomplete {
                 this.menuItemMocks.some(item => !item.datalistOption.isConnected)) {
                 this.generateOptionMocks();
             }
+
             this.generateOptionMocks();
         });
         if (this.datalistElement) {
@@ -258,10 +259,6 @@ export default class AtmosAutocomplete {
 
     private get isSuggestModeEnabled() {
         return this.inputElement.dataset.suggest === "true";
-    }
-
-    private get isSubtextShown() {
-        return this.inputElement.dataset.subtext === "true";
     }
 
     private get menuPosition() {
@@ -322,7 +319,7 @@ export default class AtmosAutocomplete {
 
             let target = e.target as HTMLElement;
             if (target.closest(".atmos-autocomplete-menu") === AtmosAutocomplete.openedAutocomplete.menuMock) {
-                // Don't close the menu if the user clicks inside of it.
+                // Don't close the menu if the user clicks inside it.
                 if (target.closest(".atmos-autocomplete-menu-item.disabled")) {
                     // Don't close the menu if the user clicks on a disabled option.
                     return;
@@ -346,7 +343,7 @@ export default class AtmosAutocomplete {
             AtmosAutocomplete.openedAutocomplete.hide();
         });
 
-        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
+        // Reposition the menu mock when the user resizes the container in any way (for example, Ctrl+Scroll).
         window.addEventListener("resize", () => {
             if (!AtmosAutocomplete.openedAutocomplete) return;
 
@@ -402,7 +399,7 @@ export default class AtmosAutocomplete {
     show() {
         if (!this.visibleOptions) return;
 
-        // First hide other menu mocks, since only one needs to be shown at one time.
+        // First, hide other menu mocks, since only one needs to be shown at one time.
         if (!AtmosAutocomplete.openedAutocomplete?.hidden) AtmosAutocomplete.openedAutocomplete?.hide();
 
         this.menuMock.classList.remove("hidden");
@@ -416,7 +413,7 @@ export default class AtmosAutocomplete {
         if (!this.visibleOptions && this.hidden) return;
 
         if (this.hidden) {
-            // First hide other menu mocks, since only one needs to be shown at one time.
+            // First, hide other menu mocks, since only one needs to be shown at one time.
             if (!AtmosAutocomplete.openedAutocomplete?.hidden) AtmosAutocomplete.openedAutocomplete?.hide();
         }
 
@@ -454,7 +451,7 @@ export default class AtmosAutocomplete {
             this.menuItemMocks.some(item => !item.datalistOption.isConnected)) {
             // If an option count or swap has been detected, manually regenerate all option mocks
             // without waiting for the dedicated mutation observer to fire. The observer then
-            // checks for the same conditions in order to prevent double regeneration.
+            // checks for the same conditions to prevent double regeneration.
             this.generateOptionMocks();
         } else {
             // Else just update the selected options and text content.
@@ -465,7 +462,7 @@ export default class AtmosAutocomplete {
     }
 
     destroy() {
-        // First remove all associated event listeners on elements that will remain.
+        // First, remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
         this.inputElement.removeEventListener("focus", this.listeners.inputFocusListener);
         this.inputElement.removeEventListener("input", this.listeners.inputListener);
@@ -524,14 +521,10 @@ export default class AtmosAutocomplete {
                 hasContentBeenUpdated = true;
             }
 
-            let valueToTestAgainst = menuItemMock.datalistOption.dataset.subtext ||
-                (itemText.textContent !==
-                menuItemMock.datalistOption.value ?
-                    menuItemMock.datalistOption.value :
-                    undefined);
+            let valueToTestAgainst = menuItemMock.datalistOption.dataset.subtext ?? "";
             let itemSubtext = menuItemMock.querySelector(".atmos-autocomplete-menu-item-value");
-            if (itemSubtext && valueToTestAgainst && itemSubtext.textContent !== valueToTestAgainst) {
-                itemSubtext.textContent = valueToTestAgainst;
+            if (itemSubtext.textContent !== valueToTestAgainst) {
+                itemSubtext.textContent = valueToTestAgainst ?? "";
                 hasContentBeenUpdated = true;
             }
 
@@ -540,7 +533,6 @@ export default class AtmosAutocomplete {
                 this.adjustHighlightRange(menuItemMock,
                     menuItemMock.datalistOption.textContent.trim().toLowerCase(),
                     menuItemMock.datalistOption.dataset.subtext?.trim().toLowerCase(),
-                    menuItemMock.datalistOption.value.trim().toLowerCase(),
                     value);
             }
         }
@@ -556,7 +548,7 @@ export default class AtmosAutocomplete {
 
         this.visibleOptions = 0;
 
-        // If input value is empty, show all the options.
+        // If the input value is empty, show all the options.
         if (!value) {
             for (const menuItemMock of this.menuMock.querySelectorAll(".hidden")) {
                 menuItemMock.classList.remove("hidden");
@@ -574,12 +566,10 @@ export default class AtmosAutocomplete {
         for (const menuItemMock of this.menuItemMocks) {
             // First normalize the values before comparing them.
             let normalizedOptionText = menuItemMock.datalistOption.textContent.toLowerCase().trim();
-            let normalizedOptionValue = menuItemMock.datalistOption.value.toLowerCase().trim();
             let normalizedOptionSubtext = menuItemMock.datalistOption.dataset.subtext?.toLowerCase().trim() ?? "";
             let normalizedText = value.toLowerCase().trim();
             if (menuItemMock.datalistOption.textContent === value ||
-                menuItemMock.datalistOption.dataset.subtext === value ||
-                menuItemMock.datalistOption.value === value) {
+                menuItemMock.datalistOption.dataset.subtext === value) {
                 // Case in which we have a perfectly matching option.
                 // Show the option mock.
                 menuItemMock.classList.remove("hidden");
@@ -591,11 +581,9 @@ export default class AtmosAutocomplete {
                 this.adjustHighlightRange(menuItemMock,
                     normalizedOptionText,
                     normalizedOptionSubtext,
-                    normalizedOptionValue,
                     normalizedText);
             } else if (normalizedOptionText.includes(normalizedText) ||
-                normalizedOptionSubtext.includes(normalizedText) ||
-                normalizedOptionValue.includes(normalizedText)) {
+                normalizedOptionSubtext.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
                 menuItemMock.classList.remove("hidden");
                 if (menuItemMock.parentElement.classList.contains("atmos-autocomplete-menu-optgroup"))
@@ -606,7 +594,6 @@ export default class AtmosAutocomplete {
                 this.adjustHighlightRange(menuItemMock,
                     normalizedOptionText,
                     normalizedOptionSubtext,
-                    normalizedOptionValue,
                     normalizedText);
             } else {
                 // Case in which we have a non-matching option and must hide it.
@@ -676,14 +663,14 @@ export default class AtmosAutocomplete {
         this.inputElement.removeAttribute("list");
 
         // Create the dropdown and insert it at the end of the body element,
-        // since if placed in an overflowing container it might become partly hidden.
+        // since if placed in an overflowing container, it might become partly hidden.
         let menuMock = Redom.el("ul.atmos-autocomplete-menu.hidden") as HTMLUListElement;
         if (this.inputElement.id) menuMock.dataset.origin = this.inputElement.id;
         if (this.isSuggestModeEnabled) menuMock.classList.add("readonly");
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
-        // Create a button that shows all options when clicked, positioned middle right of the input mock.
+        // Create a button that shows all options when clicked, positioned to the middle right of the input mock.
         let showAllOptionsButton = Redom.el("button.atmos-autocomplete-menu-toggle", {
             tabIndex: -1,
             type: "button",
@@ -729,10 +716,8 @@ export default class AtmosAutocomplete {
         let textMock = Redom.el("span.atmos-autocomplete-menu-item-text", option.textContent);
         Redom.mount(menuItemMock, textMock);
 
-        if (this.isSubtextShown && (option.dataset.subtext || option.value !== option.textContent)) {
-            let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.dataset.subtext || option.value);
-            Redom.mount(menuItemMock, menuItemSubtext);
-        }
+        let menuItemSubtext = Redom.el("small.atmos-autocomplete-menu-item-value", option.dataset.subtext ?? "");
+        Redom.mount(menuItemMock, menuItemSubtext);
 
         menuItemMock["datalistOption"] = option;
 
@@ -757,14 +742,13 @@ export default class AtmosAutocomplete {
             this.adjustHighlightRange(menuItemMock,
                 option.textContent.trim().toLowerCase(),
                 option.dataset.subtext?.trim().toLowerCase(),
-                option.value.trim().toLowerCase(),
                 value);
         }
 
         this.menuItemMocks.push(menuItemMock);
     }
 
-    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, optionValue: string, valueToTestAgainst: string) {
+    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, valueToTestAgainst: string) {
         // @ts-ignore Not yet in DOM typings.
         if (!CSS.highlights) return;
 
@@ -783,9 +767,8 @@ export default class AtmosAutocomplete {
             menuItemMock.textHighlightRange = null;
         }
 
-        let subtext = optionSubtext || optionValue;
-        if ((subtext && subtext !== optionText) && menuItemMock.querySelector(".atmos-autocomplete-menu-item-value")) {
-            start = subtext.indexOf(valueToTestAgainst);
+        if (optionSubtext && optionSubtext !== optionText) {
+            start = optionSubtext.indexOf(valueToTestAgainst);
             if (start >= 0 && AtmosAutocomplete.customHighlight.size < AtmosAutocomplete.maxHighlights) {
                 if (!menuItemMock.subtextHighlightRange) {
                     menuItemMock.subtextHighlightRange = new Range();
