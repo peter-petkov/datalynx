@@ -73,6 +73,10 @@
 .atmos-autocomplete-menu-item-value {
     margin-left: .5rem;
     color: #808080;
+    
+    &:empty {
+        display: none;
+    }
 }
 
 .atmos-autocomplete-menu-item-tick {
