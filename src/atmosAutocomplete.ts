@@ -60,7 +60,7 @@ export default class AtmosAutocomplete {
 
             if (e.code === "ArrowDown") {
                 e.preventDefault();
-                if (!this.visibleOptions) return;
+                if (this.visibleOptions <= 1) return;
 
                 // If the user pressed the down arrow, search the first visible option below the currently selected one
                 // or cycle back to the first visible one.
@@ -75,7 +75,7 @@ export default class AtmosAutocomplete {
                         nextOption = this.menuItemMocks[0] as HTMLLIElement
                     }
                 } while (!nextOption ||
-                (previousOption && nextOption.datalistOption.textContent === previousOption.datalistOption.textContent) ||
+                (previousOption && nextOption === previousOption) ||
                 nextOption.classList.contains("hidden") ||
                 nextOption.classList.contains("disabled"))
 
@@ -83,13 +83,16 @@ export default class AtmosAutocomplete {
 
                 this.inputElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
-                    detail: { filterMenu: false }
+                    detail: {
+                        filterMenu: false,
+                        optionToSelect: nextOption
+                    }
                 }));
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
-                if (!this.visibleOptions) return;
+                if (this.visibleOptions <= 1) return;
 
                 // If the user pressed the up arrow, search the first visible option above the currently selected one
                 // or cycle back to the last visible one.
@@ -104,7 +107,7 @@ export default class AtmosAutocomplete {
                         nextOption = this.menuItemMocks[this.menuItemMocks.length - 1] as HTMLLIElement
                     }
                 } while (!nextOption ||
-                (previousOption && nextOption.datalistOption.textContent === previousOption.datalistOption.textContent) ||
+                (nextOption === previousOption) ||
                 nextOption.classList.contains("hidden") ||
                 nextOption.classList.contains("disabled"))
 
@@ -112,7 +115,10 @@ export default class AtmosAutocomplete {
 
                 this.inputElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
-                    detail: { filterMenu: false }
+                    detail: {
+                        filterMenu: false,
+                        optionToSelect: nextOption
+                    }
                 }));
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
@@ -149,8 +155,10 @@ export default class AtmosAutocomplete {
                 this.filterMenuMock(this.inputElement.value);
             }
 
-            let selectedOption = this.menuItemMocks
-                .find(o => !o.datalistOption.disabled && o.datalistOption.textContent.trim() === this.inputElement.value.trim());
+            let selectedOption: HTMLLIElement;
+            if (e.detail?.optionToSelect) selectedOption = e.detail.optionToSelect;
+            else selectedOption = this.menuItemMocks.find(o =>
+                !o.datalistOption.disabled && o.datalistOption.textContent.trim() === this.inputElement.value.trim());
 
             this.updateMenuMock(selectedOption);
 
@@ -180,7 +188,10 @@ export default class AtmosAutocomplete {
 
             this.inputElement.dispatchEvent(new CustomEvent("change", {
                 bubbles: true,
-                detail: { filterMenu: false }
+                detail: {
+                    filterMenu: false,
+                    optionToSelect: target
+                }
             }));
 
             this.inputElement.focus();
@@ -689,6 +700,7 @@ export default class AtmosAutocomplete {
         AtmosAutocomplete.customHighlight?.clear();
         if (!this.datalistElement) return;
         this.menuItemMocks = [];
+        this.selectedMenuItemMock = null;
 
         for (const child of this.datalistElement.children) {
             if (child instanceof HTMLOptGroupElement) {
@@ -721,7 +733,7 @@ export default class AtmosAutocomplete {
 
         menuItemMock["datalistOption"] = option;
 
-        if (this.inputElement.value === option.textContent && !option.disabled) {
+        if (this.inputElement.value === option.textContent && !option.disabled && !this.selectedMenuItemMock) {
             menuItemMock.classList.add("selected");
             this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
             this.updateInputElementTitle(this.selectedMenuItemMock.title);
