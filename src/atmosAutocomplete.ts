@@ -129,6 +129,16 @@ export default class AtmosAutocomplete {
             } else if (e.code === "Enter") {
                 // Toggle the option menu on Enter key
                 e.preventDefault();
+                if (this.hidden) {
+                    let result = this.inputElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", {
+                        detail: {
+                            filter: this.inputElement.value
+                        },
+                        cancelable: true
+                    }));
+                    if (!result) return;
+                }
+
                 this.toggle();
             } else if (e.code === "Tab") {
                 this.hide()
