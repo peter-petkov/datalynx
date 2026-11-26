@@ -7,8 +7,8 @@
     --page-accent-soft: light-dark(#eeebfb, #2a2545);
 }
 
-/* A field is a label above its input, on the stage or in a form on it. */
-.stage, .stage form {
+/* A field is a label above its input, on the stage, or in a form or a div (for its lang or dir) on it. */
+.stage, .stage > :is(form, div):not(.stage-extra) {
     display: grid;
     justify-items: start;
     gap: 0.4rem;
@@ -22,8 +22,12 @@
     }
 }
 
-.stage form {
+.stage > :is(form, div):not(.stage-extra) {
     justify-self: stretch;
+
+    & + div {
+        margin-top: 0.6rem;
+    }
 
     > button {
         margin-top: 0.8rem;

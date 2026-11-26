@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Class plugs</title>
+    <script type="importmap">{ "imports": { "burrowkit/": "../node_modules/burrowkit/src/" } }</script>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" href="../src/datalynx.css">
+    <link rel="stylesheet" href="./plugs-demo.css">
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            margin: 0;
+            padding: 1.75rem 1.5rem;
+            font: 15px/1.6 "InterVariable", "Inter", system-ui, sans-serif;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+
+        input {
+            width: min(100%, 18rem);
+            padding: 0.4rem 0.6rem;
+            border: 1px solid light-dark(#e6e4df, #2c2c31);
+            border-radius: 6px;
+            background: light-dark(#fbfbfa, #161618);
+            color: inherit;
+            font: inherit;
+        }
+
+        /* The frame is short, so the usual 45vh would leave the list cramped. */
+        data-lynx {
+            --datalynx-max-height: 14rem;
+        }
+    </style>
+    <script>
+        // Follows the docs page's theme switch, when it's shown there.
+        try {
+            const root = parent.document.documentElement;
+            const sync = () => document.documentElement.style.colorScheme = root.dataset.theme ?? "";
+            new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+            sync();
+        } catch {
+        }
+    </script>
+</head>
+<body>
+<label for="fruit">Fruit</label>
+<data-lynx>
+    <input id="fruit" name="fruit" list="fruits">
+</data-lynx>
+<datalist id="fruits">
+    <option value="Strawberry" data-icon="🍓"></option>
+    <option value="Peach" data-icon="🍑"></option>
+    <option value="Apple" data-icon="🍎"></option>
+    <option value="Banana" data-icon="🍌"></option>
+    <option value="Grapes" data-icon="🍇"></option>
+    <option value="Watermelon" data-icon="🍉"></option>
+    <option value="Pineapple" data-icon="🍍"></option>
+    <option value="Kiwi" data-icon="🥝"></option>
+</datalist>
+<script type="module">
+    import "./plugs-demo-classes.js";
+    import "../src/datalynx.js";
+</script>
+</body>
+</html>

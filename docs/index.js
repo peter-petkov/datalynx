@@ -2,7 +2,8 @@
 // panels, navigation, version, support notice) comes from Burrowkit's docs/page.js; theme.js applied the saved theme
 // in <head>. Platypicker is loaded for the page's own selects (the section picker on narrow screens), not by Datalynx.
 import {
-    eventLog, setupCodeBlocks, setupExamples, setupNavigation, setupSupportNotice, setupTheme, setupVersion
+    eventLog, setupCodeBlocks, setupExamples, setupNavigation, setupSupportNotice, setupTheme, setupTheming,
+    setupVersion
 } from "burrowkit/docs/page.js";
 
 // ---------------------------------------------------------------------------
@@ -93,5 +94,6 @@ setupNavigation({ wrap: "platy-picker", sync: (picker, id) => picker.setValue?.(
 setupDatalynxSupport();
 setupEventsDemo();
 setupLiveDemo();
+setupTheming(document.querySelector("[data-theming]"), "data-lynx");
 
 await Promise.all([import("../node_modules/platypicker/src/platypicker.js"), import("../src/datalynx.js")]);

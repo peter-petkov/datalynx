@@ -44,6 +44,14 @@
             <p>Lists</p>
             <a href="#long-lists">Long lists</a>
             <a href="#live-changes">Live changes</a>
+            <p>Styling</p>
+            <a href="#theming">Theming</a>
+            <a href="#class-plugs">Class plugs</a>
+            <p>Platforms</p>
+            <a href="#localization">Localization</a>
+            <a href="#browser-support">Browser support</a>
+            <p>Tools</p>
+            <a href="#reference">Reference</a>
         </nav>
     </aside>
 
@@ -299,6 +307,295 @@
                     datalist.options[0].value = "Chocolate cookie"; // its row follows
                 </script>
             </div>
+        </section>
+
+        <section id="theming">
+            <h2>Theming</h2>
+            <p>The stylesheet draws a neutral popover meant to sit well in most pages, in light and dark, in the same look as Platypicker's. Change it with <code>--datalynx-*</code> variables, set on <code>data-lynx</code> or any ancestor. Move the controls, then open the popover to see them; the CSS tab follows.</p>
+            <div class="example" data-theming>
+                <template>
+                    <label for="theme-fruit">Fruit</label>
+                    <data-lynx>
+                        <input id="theme-fruit" name="fruit" list="theme-fruits" value="an">
+                    </data-lynx>
+                    <datalist id="theme-fruits">
+                        <option value="Banana" data-icon="🍌"></option>
+                        <option value="Mango" data-icon="🥭"></option>
+                        <option value="Orange" data-icon="🍊"></option>
+                        <option value="Pineapple" data-icon="🍍"></option>
+                        <option value="Pomegranate" data-icon="🔴"></option>
+                    </datalist>
+                </template>
+                <div class="controls stage-extra">
+                    <label>Accent <input type="color" value="#1f63d6" data-dark="#7aaefc" data-var="--datalynx-accent-color"></label>
+                    <label>Active row <input type="color" value="#f0efec" data-dark="#2d2d31" data-var="--datalynx-hover-bg"></label>
+                    <label>Search match <input type="color" value="#fde58a" data-dark="#d99a1e" data-var="--datalynx-highlight-bg"></label>
+                    <label>Radius <input type="range" min="0" max="16" value="6" data-var="--datalynx-radius" data-unit="px"></label>
+                    <label>Menu radius <input type="range" min="0" max="20" value="8" data-var="--datalynx-menu-radius" data-unit="px"></label>
+                    <button type="button" class="button" data-reset>Reset</button>
+                </div>
+                <script type="text/plain" data-code="CSS"></script>
+            </div>
+            <p>The default colors switch between light and dark with the page's <code>color-scheme</code>, so a page with a dark theme should say so. Use <code>light-dark()</code> to give your own colors for both.</p>
+            <script type="text/plain" data-code="CSS">
+                :root { color-scheme: light dark; }               /* follow the system */
+                :root[data-theme="dark"] { color-scheme: dark; }  /* or follow your own switch */
+
+                .checkout {
+                  --datalynx-accent-color: light-dark(#5b48c2, #ab9cf6);
+                }
+            </script>
+            <details class="reference">
+                <summary>All variables</summary>
+                <table class="table">
+                    <thead>
+                    <tr><th>Variable</th><th>What it colors or sizes</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>--datalynx-bg</code></td><td>the popover's background</td></tr>
+                    <tr><td><code>--datalynx-color</code></td><td>text</td></tr>
+                    <tr><td><code>--datalynx-muted-color</code></td><td>subtexts</td></tr>
+                    <tr><td><code>--datalynx-header-color</code></td><td>group labels</td></tr>
+                    <tr><td><code>--datalynx-border-color</code></td><td>lines inside the popover</td></tr>
+                    <tr><td><code>--datalynx-field-border-color</code></td><td>the popover's border</td></tr>
+                    <tr><td><code>--datalynx-hover-bg</code></td><td>a row under the pointer, or active (the arrow keys are on it)</td></tr>
+                    <tr><td><code>--datalynx-accent-color</code></td><td>the active row's outline</td></tr>
+                    <tr><td><code>--datalynx-highlight-bg</code></td><td>search match background</td></tr>
+                    <tr><td><code>--datalynx-highlight-color</code></td><td>search match text</td></tr>
+                    <tr><td><code>--datalynx-radius</code></td><td>rows (<code>6px</code>)</td></tr>
+                    <tr><td><code>--datalynx-menu-radius</code></td><td>the popover (<code>8px</code>)</td></tr>
+                    <tr><td><code>--datalynx-shadow</code></td><td>the popover's shadow</td></tr>
+                    <tr><td><code>--datalynx-max-height</code></td><td>the popover's height limit (<code>45vh</code>)</td></tr>
+                    <tr><td><code>--datalynx-image-size</code></td><td>a row's <a href="#images">image</a>, and its icon's width (<code>1.25em</code>)</td></tr>
+                    </tbody>
+                </table>
+            </details>
+            <p>Datalynx doesn't style the input: give it your page's own look, as you would without Datalynx. The popover's paint rules weigh no more than a part's class (and the active row's state), so your own rules on the <code>dlx-*</code> classes win over them when loaded after the stylesheet. If your page uses cascade layers, import the stylesheet into one:</p>
+            <script type="text/plain" data-code="CSS">@import url("datalynx.css") layer(components);</script>
+        </section>
+
+        <section id="class-plugs">
+            <h2>Class plugs</h2>
+            <p>Every element Datalynx creates has a fixed <code>dlx-*</code> class you can style, and the input it enhances gets <code>dlx-input</code>. Each part also has a plug: extra classes added next to the fixed one, empty by default, for dressing the popover in a framework's own classes. The state plug <code>itemActive</code> is on the row the arrow keys are on, while it is.</p>
+            <p>Plugs are global, and elements read them when they are created. The elements already in the page are enhanced the moment <code>datalynx</code> is imported, so fill the plugs in a module of their own that imports <code>classes.js</code>, and import it first. The field below runs in a frame of its own, so its plugs don't reach the rest of this page.</p>
+            <div class="example">
+                <iframe class="stage-extra frame" src="./plugs-demo.html" title="A field with class plugs"></iframe>
+                <script type="text/plain" data-code="my-classes.js" data-src="./plugs-demo-classes.js"></script>
+                <script type="text/plain" data-code="CSS" data-src="./plugs-demo.css"></script>
+                <template data-code="HTML">
+                    <script type="module">
+                        import "./my-classes.js";
+                        import "datalynx";
+                    </script>
+                </template>
+            </div>
+            <details class="reference">
+                <summary>All plugs</summary>
+                <table class="table">
+                    <thead>
+                    <tr><th>Plug</th><th>Fixed class</th><th>Part</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>host</code></td><td></td><td><code>&lt;data-lynx&gt;</code></td></tr>
+                    <tr><td><code>input</code></td><td><code>dlx-input</code></td><td>the <code>&lt;input&gt;</code> it enhances</td></tr>
+                    <tr><td><code>menu</code></td><td><code>dlx-menu</code></td><td>the popover</td></tr>
+                    <tr><td><code>list</code></td><td><code>dlx-list</code></td><td>the list of suggestions</td></tr>
+                    <tr><td><code>item</code></td><td><code>dlx-item</code></td><td>a suggestion's row</td></tr>
+                    <tr><td><code>itemActive</code></td><td></td><td>the row the arrow keys are on, which <kbd>Enter</kbd> picks</td></tr>
+                    <tr><td><code>image</code></td><td><code>dlx-item-image</code></td><td>a row's image (<code>data-image</code>)</td></tr>
+                    <tr><td><code>icon</code></td><td><code>dlx-item-icon</code></td><td>a row's icon (<code>data-icon</code>)</td></tr>
+                    <tr><td><code>label</code></td><td><code>dlx-item-label</code></td><td>a row's label</td></tr>
+                    <tr><td><code>subtext</code></td><td><code>dlx-item-subtext</code></td><td>a row's subtext (<code>data-subtext</code>)</td></tr>
+                    <tr><td><code>status</code></td><td><code>dlx-status</code></td><td>how many suggestions match, for screen readers (visually hidden)</td></tr>
+                    </tbody>
+                </table>
+                <p><code>group</code>, <code>groupList</code>, <code>header</code>, <code>divider</code>, <code>placeholder</code> and <code>placeholderBar</code> are there too, for groups and skeleton rows, which Datalynx doesn't show yet.</p>
+            </details>
+            <p>The same object is <code>DataLynx.classes</code>, which is enough for elements you create later from script.</p>
+        </section>
+
+        <section id="localization">
+            <h2>Localization</h2>
+            <p>Each field follows its nearest <code>lang</code> attribute. Search ignores case and accents the way the language does: try "kase" in the German field. Datalynx has a single text, the number of matches that screen readers hear once typing pauses, and its translation loads the first time a field needs it, so an English page loads none.</p>
+            <div class="example">
+                <template>
+                    <div lang="de">
+                        <label for="essen">Essen</label>
+                        <data-lynx>
+                            <input id="essen" name="essen" list="speisen">
+                        </data-lynx>
+                        <datalist id="speisen">
+                            <option value="Käse" data-icon="🧀"></option>
+                            <option value="Brezel" data-icon="🥨"></option>
+                            <option value="Würstchen" data-icon="🌭"></option>
+                            <option value="Kartoffelsalat" data-icon="🥔"></option>
+                            <option value="Käsekuchen" data-icon="🍰"></option>
+                            <option value="Maultaschen" data-icon="🥟"></option>
+                        </datalist>
+                    </div>
+                    <div lang="ja">
+                        <label for="ryouri">料理</label>
+                        <data-lynx>
+                            <input id="ryouri" name="ryouri" list="ryouri-list">
+                        </data-lynx>
+                        <datalist id="ryouri-list">
+                            <option value="寿司" data-icon="🍣"></option>
+                            <option value="ラーメン" data-icon="🍜"></option>
+                            <option value="天ぷら" data-icon="🍤"></option>
+                            <option value="おにぎり" data-icon="🍙"></option>
+                            <option value="餃子" data-icon="🥟"></option>
+                        </datalist>
+                    </div>
+                </template>
+            </div>
+            <p>It ships translations for 22 languages, the same as Platypicker's: Arabic, Bengali, Bulgarian, Chinese (simplified and traditional), French, German, Hindi, Indonesian, Italian, Japanese, Korean, Marathi, Polish, Portuguese, Russian, Spanish, Tamil, Telugu, Turkish, Urdu and Vietnamese. A regional tag uses its language (<code>de-AT</code> is German), and any other language stays English.</p>
+            <p>The translations are plain objects in <code>src/languages/</code>, one file per language. Import one to bundle it, or register texts of your own in <code>DataLynx.languages</code>, which win over Datalynx's. The text has plural forms, picked by the language's own rules.</p>
+            <script type="text/plain" data-code="JS">import DataLynx from "datalynx";
+import de from "datalynx/src/languages/de.js";
+
+// Bundled, instead of loaded on demand.
+DataLynx.languages.de = de;
+
+// Or a text of your own. A plain string serves every count.
+DataLynx.languages.de = { matchesLabel: "{count} Vorschläge" };
+
+// English, with plural forms: the language's rules pick one, and other stands in for any left out.
+DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count} suggestions" };</script>
+            <h3>Right to left</h3>
+            <p>In a right-to-left page or element (<code>dir="rtl"</code>) the popover lines up with the input's right edge, and images, icons and subtexts swap sides.</p>
+            <div class="example">
+                <template>
+                    <div dir="rtl" lang="ar">
+                        <label for="madina">المدينة</label>
+                        <data-lynx>
+                            <input id="madina" name="madina" list="mudun">
+                        </data-lynx>
+                        <datalist id="mudun">
+                            <option value="القاهرة" data-subtext="مصر"></option>
+                            <option value="دبي" data-subtext="الإمارات"></option>
+                            <option value="الرياض" data-subtext="السعودية"></option>
+                            <option value="عمّان" data-subtext="الأردن"></option>
+                            <option value="بيروت" data-subtext="لبنان"></option>
+                            <option value="تونس" data-subtext="تونس"></option>
+                            <option value="الرباط" data-subtext="المغرب"></option>
+                        </datalist>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <section id="browser-support">
+            <h2>Browser support</h2>
+            <p>Datalynx needs anchor positioning (with <code>anchor-scope</code>), the popover attribute and the CSS Custom Highlight API.</p>
+            <ul>
+                <li>Chrome and Edge 135 and later.</li>
+                <li>Firefox, current releases, with no flags.</li>
+                <li>Safari 27 and later, on the Mac and on iPhone.</li>
+            </ul>
+            <p class="support-check" data-support></p>
+            <p>Without support, <code>&lt;data-lynx&gt;</code> does nothing: the input keeps its <code>list</code>, and the browser's own datalist works as it always did, so forms keep working everywhere.</p>
+            <p>So far Datalynx has been checked on the desktop, in Chrome, in Firefox 160 and in WebKit 27.2 (the engine of Safari, through Playwright). Safari itself and phones haven't been tested yet, and on phones Datalynx shows the same popover as on the desktop: a layout for phones is still to come.</p>
+            <p>A few things to keep in mind:</p>
+            <ul>
+                <li>Only a direct child input is enhanced: <code>&lt;data-lynx&gt;&lt;input list&gt;</code>. Its datalist can be anywhere in the same document or shadow root.</li>
+                <li><code>&lt;data-lynx&gt;</code> is <code>display: contents</code>, so size and place the input as you would without it.</li>
+                <li>While enhanced, the input has no <code>list</code> attribute and has <code>autocomplete="off"</code>; see <a href="#native-datalist">The browser's datalist</a>. Selectors of yours on <code>input[list]</code> no longer match it.</li>
+            </ul>
+        </section>
+
+        <section id="reference">
+            <h2>Reference</h2>
+            <p>Everything Datalynx takes, on one page. The sections above show each in use, and the <a href="https://github.com/peter-petkov/datalynx#readme">README</a> has the details.</p>
+
+            <h3>Attributes</h3>
+            <p>On <code>&lt;data-lynx&gt;</code>. It's also a property, and changes apply right away.</p>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>Attribute</th><th>Property</th><th>Value</th><th>Does</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>batch-size</code></td><td><code>batchSize</code></td><td>number, 50</td><td>rows the list works with at a time; <code>0</code> renders all</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>The input, the datalist and its options</h3>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>Markup</th><th>Does</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>&lt;input list="id"&gt;</code></td><td>the input to enhance, and its datalist</td></tr>
+                    <tr><td><code>value</code> on an option</td><td>what a pick puts in the input; searched too</td></tr>
+                    <tr><td><code>label</code> or text on an option</td><td>the row's text, or else the value</td></tr>
+                    <tr><td><code>data-subtext</code> on an option</td><td>a second text beside the label, searched too</td></tr>
+                    <tr><td><code>data-image</code>, <code>data-icon</code> on an option</td><td>a picture or an emoji before the label (see <a href="#images">Images and icons</a>)</td></tr>
+                    <tr><td><code>hidden</code>, <code>disabled</code>, <code>title</code> on an option</td><td>left out; left out; a tooltip</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Events</h3>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>Event</th><th>On</th><th>When</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>input</code></td><td>the input</td><td>typing, and a pick, which puts the option's value in the input</td></tr>
+                    <tr><td><code>change</code></td><td>the input</td><td>a pick, and leaving the input after typing, as always</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>JavaScript</h3>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>Member</th><th>Does</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>lynx.datalist</code></td><td>the datalist of the input, while <code>input.list</code> is null</td></tr>
+                    <tr><td><code>DataLynx.get(input)</code></td><td>the <code>&lt;data-lynx&gt;</code> enhancing an input, if any</td></tr>
+                    <tr><td><code>DataLynx.defaultBatchSize</code></td><td>the <code>batch-size</code> of elements without one (50)</td></tr>
+                    <tr><td><code>DataLynx.languageMap</code></td><td>the English text, and the fallback for other languages</td></tr>
+                    <tr><td><code>DataLynx.languages</code></td><td>texts of your own, by language code</td></tr>
+                    <tr><td><code>DataLynx.classes</code></td><td>the <a href="#class-plugs">class plugs</a></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>The default export of <code>"datalynx"</code> is <code>DataLynx</code>, the element's class. The package comes with TypeScript types (<code>src/datalynx.d.ts</code>).</p>
+
+            <h3>Texts</h3>
+            <p>Set in <code>DataLynx.languageMap</code> for English, or <code>DataLynx.languages</code> for a language (see <a href="#localization">Localization</a>).</p>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>Text</th><th>English</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>matchesLabel</code></td><td>{count} match, {count} matches (read out once typing pauses)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>CSS</h3>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>Hook</th><th>Is</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td><code>--datalynx-*</code></td><td>colors, radius, shadow and height (see <a href="#theming">Theming</a>)</td></tr>
+                    <tr><td><code>.dlx-*</code></td><td>a fixed class on every part (see <a href="#class-plugs">Class plugs</a>)</td></tr>
+                    <tr><td><code>data-lynx:state(open)</code></td><td>a field while its popover is open</td></tr>
+                    <tr><td><code>.dlx-item[aria-selected="true"]</code></td><td>the active row</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>The keys are listed under <a href="#keyboard">Opening and keyboard</a>.</p>
         </section>
     </main>
 </div>

@@ -1,0 +1,14 @@
+/* Loaded after datalynx.css, so these single classes win over its look. */
+
+.pill-menu {
+    border-radius: 18px;
+}
+
+.pill-item {
+    border-radius: 999px;
+}
+
+.pill-item-active {
+    color: light-dark(#a3164a, #ff9cbf);
+    font-weight: 600;
+}
