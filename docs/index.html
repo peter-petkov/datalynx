@@ -41,6 +41,7 @@
             <p>Behaviour</p>
             <a href="#keyboard">Opening and keyboard</a>
             <a href="#native-datalist">The browser's datalist</a>
+            <a href="#validation">Validation</a>
             <p>Lists</p>
             <a href="#long-lists">Long lists</a>
             <a href="#live-changes">Live changes</a>
@@ -260,6 +261,39 @@
                     </datalist>
                 </template>
             </div>
+        </section>
+
+        <section id="validation">
+            <h2>Validation</h2>
+            <p>An input with a datalist takes free text, and Datalynx never rejects or clears what's typed. With <code>strict</code>, text that matches no suggestion makes the input invalid, left as typed: the form won't submit, the browser says "Please enter a value from the list.", and <code>:user-invalid</code> applies. Datalynx doesn't style the invalid input; the page does, as here with a red border.</p>
+            <p>Case and accents don't matter, and a suggestion's label counts as well as its value, as long as no other suggestion has the same label. On <code>change</code>, when you leave the field or press <kbd>Enter</kbd>, a match is corrected to the suggestion's value, firing <code>input</code> and <code>change</code> as a pick would: type "sofia" or "zurich" and press <kbd>Tab</kbd>. An empty field is valid; <code>required</code> is for a field that must be filled.</p>
+            <div class="example" data-validation>
+                <template>
+                    <form>
+                        <label for="from">From</label>
+                        <data-lynx strict>
+                            <input id="from" name="from" list="departures" required>
+                        </data-lynx>
+                        <button>Submit</button>
+                    </form>
+                    <datalist id="departures">
+                        <option value="AMS" data-subtext="Netherlands">Amsterdam</option>
+                        <option value="ATH" data-subtext="Greece">Athens</option>
+                        <option value="BCN" data-subtext="Spain">Barcelona</option>
+                        <option value="IST" data-subtext="Türkiye">Istanbul</option>
+                        <option value="LHR" data-subtext="United Kingdom">London Heathrow</option>
+                        <option value="SOF" data-subtext="Bulgaria">Sofia</option>
+                        <option value="ZRH" data-subtext="Switzerland">Zürich</option>
+                    </datalist>
+                </template>
+                <script type="text/plain" data-code="CSS">
+                    data-lynx input:user-invalid {
+                        border-color: crimson;
+                    }
+                </script>
+                <ol class="log stage-extra" aria-label="Events" aria-live="polite"></ol>
+            </div>
+            <p>Datalynx checks the text on <code>input</code>, <code>change</code>, focus out and a form reset, and when the options change. A script that sets <code>input.value</code> fires no event, so Datalynx doesn't see it: dispatch an <code>input</code> event after it. Turning <code>strict</code> off clears the message; a message the page set itself with <code>setCustomValidity</code> is left alone.</p>
         </section>
 
         <section id="long-lists">
@@ -519,6 +553,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                     </thead>
                     <tbody>
                     <tr><td><code>batch-size</code></td><td><code>batchSize</code></td><td>number, 50</td><td>rows the list works with at a time; <code>0</code> renders all</td></tr>
+                    <tr><td><code>strict</code></td><td><code>strict</code></td><td>boolean, off</td><td>text matching no suggestion makes the input invalid; matches are corrected to their value on change (see <a href="#validation">Validation</a>)</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -547,8 +582,8 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                     <tr><th>Event</th><th>On</th><th>When</th></tr>
                     </thead>
                     <tbody>
-                    <tr><td><code>input</code></td><td>the input</td><td>typing, and a pick, which puts the option's value in the input</td></tr>
-                    <tr><td><code>change</code></td><td>the input</td><td>a pick, and leaving the input after typing, as always</td></tr>
+                    <tr><td><code>input</code></td><td>the input</td><td>typing, a pick, which puts the option's value in the input, and a <code>strict</code> correction</td></tr>
+                    <tr><td><code>change</code></td><td>the input</td><td>a pick, leaving the input after typing, as always, and a <code>strict</code> correction</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -580,6 +615,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                     </thead>
                     <tbody>
                     <tr><td><code>matchesLabel</code></td><td>{count} match, {count} matches (read out once typing pauses)</td></tr>
+                    <tr><td><code>invalidValue</code></td><td>Please enter a value from the list. (a <code>strict</code> input's message)</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -621,6 +657,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                         <legend>Field</legend>
                         <label class="field-row">batch-size <input class="field" type="number" name="batch-size" min="0" placeholder="50"></label>
                         <label class="field-row">placeholder <input class="field" name="placeholder" value="Type or press ↓"></label>
+                        <label class="field-row">strict <input type="checkbox" name="strict"></label>
                     </fieldset>
                     <fieldset>
                         <legend>Page</legend>

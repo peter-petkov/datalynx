@@ -41,6 +41,23 @@ async function setupEventsDemo() {
 }
 
 // ---------------------------------------------------------------------------
+// Validation: the input's events, and what a submit would send, without leaving the page
+// ---------------------------------------------------------------------------
+
+async function setupValidationDemo() {
+    const example = document.querySelector("[data-validation]");
+    const form = (await example.stageReady).querySelector("form");
+    const input = form.querySelector("input");
+    const write = eventLog(example.querySelector(".log"));
+
+    for (const type of ["input", "change"]) input.addEventListener(type, () => write(`${type}: "${input.value}"`));
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        write(`submitted ${new URLSearchParams(new FormData(form))}`);
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Live changes. The buttons don't take focus from the input (mousedown is cancelled), so an open popover stays open
 // while they change its datalist.
 // ---------------------------------------------------------------------------
@@ -128,6 +145,7 @@ async function setupPlayground() {
         label.htmlFor = "playground-input";
         label.textContent = { fruits: "Fruit", airports: "Airport", countries: "Country", items: "Item" }[list];
         if (value("batch-size")) lynx.setAttribute("batch-size", value("batch-size"));
+        if (form.elements.strict.checked) lynx.setAttribute("strict", "");
         input.id = "playground-input";
         input.name = list;
         input.setAttribute("list", "playground-list");
@@ -177,6 +195,7 @@ setupVersion();
 setupNavigation({ wrap: "platy-picker", sync: (picker, id) => picker.setValue?.(id) });
 setupDatalynxSupport();
 setupEventsDemo();
+setupValidationDemo();
 setupLiveDemo();
 setupTheming(document.querySelector("[data-theming]"), "data-lynx");
 setupPlayground();

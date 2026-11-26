@@ -61,3 +61,8 @@
         outline-offset: 1px;
     }
 }
+
+/* An input that strict found invalid, once the user has been at it: the page's own style, as Validation shows. */
+.stage data-lynx input:user-invalid {
+    border-color: crimson;
+}
