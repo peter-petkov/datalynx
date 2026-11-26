@@ -36,6 +36,14 @@
             <p>Basics</p>
             <a href="#getting-started">Getting started</a>
             <a href="#search">Search</a>
+            <a href="#labels">Labels and subtexts</a>
+            <a href="#images">Images and icons</a>
+            <p>Behaviour</p>
+            <a href="#keyboard">Opening and keyboard</a>
+            <a href="#native-datalist">The browser's datalist</a>
+            <p>Lists</p>
+            <a href="#long-lists">Long lists</a>
+            <a href="#live-changes">Live changes</a>
         </nav>
     </aside>
 
@@ -119,6 +127,177 @@
                         <option value="ZRH" data-subtext="Switzerland">Zürich</option>
                     </datalist>
                 </template>
+            </div>
+        </section>
+
+        <section id="labels">
+            <h2>Labels and subtexts</h2>
+            <p>A row shows the option's label: its <code>label</code> attribute or its text, or else its value. <code>data-subtext</code> sits beside it, in a muted color. Picking a row puts the option's value in the input, not its label, as the browser's own datalist does. So a list can show names and fill in addresses: type "grace", or "hopper", and pick her.</p>
+            <div class="example">
+                <template>
+                    <label for="to">To</label>
+                    <data-lynx>
+                        <input id="to" name="to" type="email" list="contacts">
+                    </data-lynx>
+                    <datalist id="contacts">
+                        <option value="ada@example.com" data-subtext="ada@example.com">Ada Lovelace</option>
+                        <option value="alan@example.com" data-subtext="alan@example.com">Alan Turing</option>
+                        <option value="grace@example.com" data-subtext="grace@example.com">Grace Hopper</option>
+                        <option value="katherine@example.com" data-subtext="katherine@example.com">Katherine Johnson</option>
+                        <option value="margaret@example.com" data-subtext="margaret@example.com">Margaret Hamilton</option>
+                    </datalist>
+                </template>
+            </div>
+            <p>Options with <code>hidden</code> or <code>disabled</code> are left out, as the browser leaves out disabled ones. <code>title</code> on an option becomes its row's tooltip.</p>
+        </section>
+
+        <section id="images">
+            <h2>Images and icons</h2>
+            <p><code>data-image</code> on an option puts a picture before its label, such as a flag or an avatar. It's a square of <code>--datalynx-image-size</code> (<code>1.25em</code>), with the whole picture shown in it, so rows don't jump as the images arrive. Images load only once their row is near the view, and one that fails to load is hidden.</p>
+            <p><code>data-icon</code> puts short text there instead, for an emoji, in a slot as wide as an image, so the labels line up. Unlike an emoji in the label, it isn't read out by screen readers. Both are decorative: the label names the option. Search finds an icon when you type its emoji, as "🍋" finds Lemon in the fruit field above; an image isn't searched.</p>
+            <div class="example">
+                <template>
+                    <label for="country">Country</label>
+                    <data-lynx>
+                        <input id="country" name="country" list="countries">
+                    </data-lynx>
+                    <datalist id="countries">
+                        <option value="Austria" data-image="flags/at.svg"></option>
+                        <option value="France" data-image="flags/fr.svg"></option>
+                        <option value="Germany" data-image="flags/de.svg"></option>
+                        <option value="Indonesia" data-image="flags/id.svg"></option>
+                        <option value="Italy" data-image="flags/it.svg"></option>
+                        <option value="Japan" data-image="flags/jp.svg"></option>
+                        <option value="Nigeria" data-image="flags/ng.svg"></option>
+                        <option value="Poland" data-image="flags/pl.svg"></option>
+                        <option value="Sweden" data-image="flags/se.svg"></option>
+                        <option value="Ukraine" data-image="flags/ua.svg"></option>
+                    </datalist>
+                </template>
+            </div>
+        </section>
+
+        <section id="keyboard">
+            <h2>Opening and keyboard</h2>
+            <p>Typing opens the popover with the suggestions that match. <kbd>↓</kbd>, <kbd>Alt</kbd>+<kbd>↓</kbd> or a click in an input that already has focus open it even while the input is empty, with every suggestion. Focusing the input doesn't, by <kbd>Tab</kbd> or by the click that focuses it, so moving through a form stays quiet. Emptying the input while the popover is open shows every suggestion again. It closes when nothing matches, on <kbd>Esc</kbd>, <kbd>Alt</kbd>+<kbd>↑</kbd> or a pick, and when focus leaves the input.</p>
+            <p>Focus stays in the input all along, so typing, the caret and selecting text work as in any input. The log shows the input's own events: a pick fires <code>input</code> and <code>change</code>, as typing and leaving the field would.</p>
+            <div class="example" data-events>
+                <template>
+                    <label for="city">City</label>
+                    <data-lynx>
+                        <input id="city" name="city" list="cities">
+                    </data-lynx>
+                    <datalist id="cities">
+                        <option value="Buenos Aires" data-subtext="Argentina"></option>
+                        <option value="Cairo" data-subtext="Egypt"></option>
+                        <option value="Cape Town" data-subtext="South Africa"></option>
+                        <option value="Istanbul" data-subtext="Türkiye"></option>
+                        <option value="Mexico City" data-subtext="Mexico"></option>
+                        <option value="Mumbai" data-subtext="India"></option>
+                        <option value="New York" data-subtext="United States"></option>
+                        <option value="Paris" data-subtext="France"></option>
+                        <option value="Rio de Janeiro" data-subtext="Brazil"></option>
+                        <option value="Seoul" data-subtext="South Korea"></option>
+                        <option value="Sydney" data-subtext="Australia"></option>
+                        <option value="Tokyo" data-subtext="Japan"></option>
+                    </datalist>
+                </template>
+                <ol class="log stage-extra" aria-label="Events" aria-live="polite"></ol>
+            </div>
+            <details class="reference" open>
+                <summary>Keys</summary>
+                <table class="table">
+                <thead>
+                <tr><th>Key</th><th>Does</th></tr>
+                </thead>
+                <tbody>
+                <tr><td>a letter</td><td>types it, and opens the popover with the matches</td></tr>
+                <tr><td><kbd>↓</kbd> / <kbd>↑</kbd></td><td>moves through the suggestions; <kbd>↓</kbd> on a closed input opens it on the first one, <kbd>↑</kbd> from the first goes back to what was typed</td></tr>
+                <tr><td><kbd>Alt</kbd>+<kbd>↓</kbd> / <kbd>Alt</kbd>+<kbd>↑</kbd></td><td>opens / closes the popover</td></tr>
+                <tr><td><kbd>Page Down</kbd> / <kbd>Page Up</kbd></td><td>a popover's height down or up</td></tr>
+                <tr><td><kbd>Enter</kbd></td><td>picks the active suggestion; without one, does what it does in the input, such as submitting the form</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>closes the popover and leaves the text; on a closed popover, what the input does (<code>type="search"</code> clears)</td></tr>
+                <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>move the caret, as in any input</td></tr>
+                <tr><td><kbd>Tab</kbd></td><td>moves on, closing the popover</td></tr>
+                </tbody>
+                </table>
+            </details>
+            <p>The input is a combobox (<code>role="combobox"</code>, <code>aria-expanded</code>, <code>aria-controls</code>, <code>aria-autocomplete="list"</code>, <code>aria-activedescendant</code>) controlling a listbox of options, so screen readers follow the active suggestion while focus stays in the input. They hear how many suggestions match once typing pauses. Forced colors (Windows High Contrast) are supported.</p>
+        </section>
+
+        <section id="native-datalist">
+            <h2>The browser's datalist</h2>
+            <p>Chrome and Firefox show their own datalist popup whenever an input has a <code>list</code>, whatever the CSS says. So while Datalynx enhances an input, it takes the <code>list</code> attribute off and sets <code>autocomplete="off"</code>, since Firefox would show the input's form history in its place. Both go back as they were when the element is removed. Meanwhile <code>input.list</code> is null, and the element's <code>datalist</code> property has the datalist.</p>
+            <p>Turning <code>autocomplete</code> off also turns off the browser's autofill for that input: Datalynx's suggestions replace the browser's. Browsers don't let a page read their autofill or form history, so it can't show in Datalynx's popover. Compare the two fields: both are <code>name="email"</code> with <code>autocomplete="email"</code> and the same suggestions, and only the first has Datalynx. Submit an address once so the browser remembers it, then try each field again.</p>
+            <div class="example">
+                <template>
+                    <form method="get">
+                        <label for="email">Email, with Datalynx</label>
+                        <data-lynx>
+                            <input id="email" name="email" type="email" autocomplete="email" list="emails">
+                        </data-lynx>
+                        <label for="email-plain">Email, without</label>
+                        <input id="email-plain" name="email" type="email" autocomplete="email" list="emails">
+                        <button>Submit</button>
+                    </form>
+                    <datalist id="emails">
+                        <option value="ada@example.com" data-subtext="Ada Lovelace"></option>
+                        <option value="alan@example.com" data-subtext="Alan Turing"></option>
+                        <option value="grace@example.com" data-subtext="Grace Hopper"></option>
+                        <option value="katherine@example.com" data-subtext="Katherine Johnson"></option>
+                        <option value="margaret@example.com" data-subtext="Margaret Hamilton"></option>
+                    </datalist>
+                </template>
+            </div>
+        </section>
+
+        <section id="long-lists">
+            <h2>Long lists</h2>
+            <p>Any list longer than a batch, 50 options by default, starts with a batch of rows, and more are shown a few at a time as you scroll, so the scrollbar shrinks smoothly instead of jumping and a datalist of thousands opens at once. Searching still covers every option, and the arrow keys go past the rows shown so far. <code>batch-size</code> sets how many rows the list works with at a time: the rows shown first, and how far ahead it searches. <code>batch-size="0"</code> renders everything at once.</p>
+            <p>This one has 5,000 suggestions, in batches of 20. Press <kbd>↓</kbd> and scroll, or type "4999" to find one near the end.</p>
+            <div class="example">
+                <template>
+                    <label for="item">Item</label>
+                    <data-lynx batch-size="20">
+                        <input id="item" name="item" list="items">
+                    </data-lynx>
+                    <datalist id="items" data-items="5000"></datalist>
+                </template>
+            </div>
+            <p>A missing or invalid <code>batch-size</code> uses <code>DataLynx.defaultBatchSize</code>, 50 unless you change it.</p>
+        </section>
+
+        <section id="live-changes">
+            <h2>Live changes</h2>
+            <p>The datalist stays the source of truth. Add, remove or change its options with the usual DOM methods, and the suggestions follow, also while the popover is open, where the active suggestion stays active. <code>batch-size</code> is live too, and so is the property of the same name. Open the popover, then click the buttons: they don't take focus, so it stays open.</p>
+            <div class="example" data-live>
+                <template>
+                    <label for="snack">Snack</label>
+                    <data-lynx>
+                        <input id="snack" name="snack" list="snacks">
+                    </data-lynx>
+                    <datalist id="snacks">
+                        <option value="Cookie" data-icon="🍪"></option>
+                        <option value="Croissant" data-icon="🥐"></option>
+                        <option value="Donut" data-icon="🍩"></option>
+                        <option value="Popcorn" data-icon="🍿"></option>
+                    </datalist>
+                </template>
+                <div class="toolbar stage-extra">
+                    <button type="button" class="button" data-action="add">Add an option</button>
+                    <button type="button" class="button" data-action="remove">Remove the last</button>
+                    <button type="button" class="button" data-action="rename">Rename the first</button>
+                </div>
+                <ol class="log stage-extra" aria-label="Changes" aria-live="polite"></ol>
+                <script type="text/plain" data-code="JS">
+                    const datalist = document.getElementById("snacks");
+
+                    const cake = new Option("", "Cake");
+                    cake.dataset.icon = "🍰";
+                    datalist.append(cake);                          // shows up in the suggestions
+                    datalist.lastElementChild.remove();
+                    datalist.options[0].value = "Chocolate cookie"; // its row follows
+                </script>
             </div>
         </section>
     </main>
