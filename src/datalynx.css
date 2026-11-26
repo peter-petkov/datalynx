@@ -111,8 +111,9 @@
             margin: 0;
             list-style: none;
 
-            /* Every item, also those in a group's list, so a page's own list rules (like li + li) stay out. */
-            li {
+            /* Every item, also those in a group's list, so a page's own list rules (like li + li) stay out. Not the
+               rows, which are list items themselves and have padding of their own. */
+            li:not(.dlx-item) {
                 margin: 0;
                 padding: 0;
             }

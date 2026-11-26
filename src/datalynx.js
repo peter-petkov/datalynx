@@ -293,16 +293,24 @@ export default class DataLynx extends HTMLElement {
         const { signal } = this.#abort;
         const input = this.#input;
 
-        // Typing opens it, and narrows it down. An emptied input closes it; Down or a click brings every suggestion.
+        // Typing opens it, and narrows it down. Emptying the input while it's open shows every suggestion again.
         input.addEventListener("input", () => {
             if (this.#picking) return;
 
-            if (!input.value.trim()) this.#close();
-            else if (this.#isOpen) this.#refilter();
-            else this.#open();
+            if (this.#isOpen) this.#refilter();
+            else if (input.value.trim()) this.#open();
         }, { signal });
 
-        input.addEventListener("click", () => this.#open(), { signal });
+        // A click opens it once the input has focus: the click that focuses it doesn't, so clicking into a field
+        // stays quiet, as tabbing into it does.
+        let hadFocus = false;
+        input.addEventListener("pointerdown", () => {
+            hadFocus = input.getRootNode().activeElement === input;
+        }, { signal });
+        input.addEventListener("click", () => {
+            if (hadFocus) this.#open();
+            hadFocus = false;
+        }, { signal });
 
         // Focus leaving the input closes it. A press on the popover keeps focus in the input (see SuggestionsView).
         input.addEventListener("blur", () => this.#close(), { signal });
