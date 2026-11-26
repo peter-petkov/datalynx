@@ -4,6 +4,8 @@ A drop-in enhancement for an `<input>` with a `<datalist>`: a searchable popover
 
 Work in progress: not on npm yet. Skins and the phone sheet are still to come.
 
+**[Docs and live examples](https://peter-petkov.github.io/datalynx/)**, with a playground. The page goes online with the first release; until then, serve the repo and open `docs/index.html`.
+
 ## Usage
 
 Wrap the `<input>` in `<data-lynx>`; its `<datalist>` can be anywhere in the page:
