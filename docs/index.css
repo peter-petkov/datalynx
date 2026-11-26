@@ -1,0 +1,81 @@
+/* The docs page's own look, the same tokens as Platypicker's docs page. */
+
+:root {
+    color-scheme: light dark;
+    --page-bg: light-dark(#fbfbfa, #161618);
+    --page-color: light-dark(#1d1c1a, #ececee);
+    --page-muted: light-dark(#6b6964, #9a9aa2);
+    --page-border: light-dark(#e6e4df, #2c2c31);
+    --page-stage: light-dark(#f3f2ee, #1d1d20);
+    --page-code-bg: light-dark(#f6f5f2, #1b1b1e);
+    --page-accent: light-dark(#0b7a75, #3cc2b7);
+    --topbar-height: 3.5rem;
+}
+
+*, ::before, ::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--page-color);
+    font: 15px/1.6 "InterVariable", "Inter", system-ui, sans-serif;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: var(--topbar-height);
+    padding-inline: 1.5rem;
+    border-block-end: 1px solid var(--page-border);
+
+    .brand {
+        font-weight: 650;
+        font-size: 1.1rem;
+    }
+
+    .status {
+        color: var(--page-muted);
+        font-size: 0.85rem;
+    }
+}
+
+main {
+    max-width: 48rem;
+    margin-inline: auto;
+    padding: 2rem 1.5rem;
+}
+
+code {
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+    background: var(--page-code-bg);
+    font-size: 0.9em;
+}
+
+.stage {
+    display: grid;
+    gap: 0.4rem;
+    justify-items: start;
+    padding: 1.5rem;
+    border: 1px solid var(--page-border);
+    border-radius: 10px;
+    background: var(--page-stage);
+
+    input {
+        width: min(100%, 18rem);
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--page-border);
+        border-radius: 6px;
+        background: var(--page-bg);
+        color: inherit;
+        font: inherit;
+
+        &:focus-visible {
+            outline: 2px solid var(--page-accent);
+            outline-offset: 1px;
+        }
+    }
+}

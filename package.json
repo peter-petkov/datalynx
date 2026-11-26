@@ -1,0 +1,28 @@
+{
+  "name": "datalynx",
+  "version": "0.0.0",
+  "description": "A searchable suggestions popover for inputs with a datalist, with a sheet on phones and 22 languages.",
+  "keywords": [
+    "autocomplete",
+    "datalist",
+    "combobox",
+    "typeahead",
+    "custom-element",
+    "web-component",
+    "popover",
+    "vanilla-js"
+  ],
+  "private": false,
+  "type": "module",
+  "main": "src/datalynx.js",
+  "types": "src/datalynx.d.ts",
+  "style": "src/datalynx.css",
+  "jsdelivr": "dist/datalynx.min.js",
+  "unpkg": "dist/datalynx.min.js",
+  "author": "Peter Petkov",
+  "license": "MIT",
+  "files": [
+    "src",
+    "dist"
+  ]
+}
