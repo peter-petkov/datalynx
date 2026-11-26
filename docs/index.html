@@ -81,6 +81,29 @@
             <datalist id="numbers"></datalist>
         </div>
     </section>
+
+    <section id="autofill">
+        <h2>Autofill</h2>
+        <p>While Datalynx enhances an input it sets <code>autocomplete="off"</code>, or Firefox would show the input's form history over the suggestions. That also turns off the browser's autofill for it. Compare the two fields: both are <code>name="email"</code> with <code>autocomplete="email"</code> and the same suggestions; only the first has Datalynx. Submit an address once so the browser remembers it, then try each field again.</p>
+
+        <form class="stage" action="" method="get">
+            <label for="email">Email, with Datalynx</label>
+            <data-lynx>
+                <input id="email" name="email" type="email" autocomplete="email" list="emails">
+            </data-lynx>
+            <label for="email-plain">Email, without</label>
+            <input id="email-plain" name="email" type="email" autocomplete="email" list="emails">
+            <button>Submit (the browser remembers the address)</button>
+            <datalist id="emails">
+                <option value="ada@example.com" data-subtext="Ada Lovelace"></option>
+                <option value="alan@example.com" data-subtext="Alan Turing"></option>
+                <option value="grace@example.com" data-subtext="Grace Hopper"></option>
+                <option value="katherine@example.com" data-subtext="Katherine Johnson"></option>
+                <option value="linus@example.com" data-subtext="Linus Torvalds"></option>
+                <option value="margaret@example.com" data-subtext="Margaret Hamilton"></option>
+            </datalist>
+        </form>
+    </section>
 </main>
 <script>
     // 5,000 suggestions for the long list.

@@ -78,4 +78,23 @@ code {
             outline-offset: 1px;
         }
     }
+
+    label:not(:first-child) {
+        margin-top: 0.6rem;
+    }
+
+    button {
+        margin-top: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        border: 1px solid var(--page-border);
+        border-radius: 6px;
+        background: var(--page-bg);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--page-accent);
+        }
+    }
 }
