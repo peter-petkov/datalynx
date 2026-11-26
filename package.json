@@ -21,8 +21,25 @@
   "unpkg": "dist/datalynx.min.js",
   "author": "Peter Petkov",
   "license": "MIT",
+  "homepage": "https://github.com/peter-petkov/datalynx#readme",
+  "bugs": {
+    "url": "https://github.com/peter-petkov/datalynx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peter-petkov/datalynx.git"
+  },
   "files": [
     "src",
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "burrowkit": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "check:types": "tsc -p types"
+  }
 }

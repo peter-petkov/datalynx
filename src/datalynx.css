@@ -1,0 +1,301 @@
+/*
+ * Datalynx
+ *
+ * Shows an <input list>'s suggestions in a popover under it. Needs a browser with anchor positioning (and
+ * anchor-scope), the popover attribute and CSS nesting. Without them everything below is skipped and the browser's own
+ * datalist remains. The input keeps the page's own look; only the popover is styled here.
+ *
+ * The file has two parts, as Platypicker's has:
+ *   - Structure: what makes it work (positioning). Don't override it.
+ *   - Look: a neutral style meant to sit well in most pages, in two halves.
+ *       Layout says how the parts sit: a row with its image, icon, label and subtext. Its selectors are one notch
+ *       above a single class, so framework classes on the parts don't break it.
+ *       Paint is the colors, borders, spacing and type, with the specificity of a single class. A skin turns paint off
+ *       (the dlx-skin class on data-lynx) and leaves it to its framework's classes.
+ *     Pages that use cascade layers can import this file into one:
+ *     @import url("datalynx.css") layer(components);
+ *
+ * Variables you can set on data-lynx or any ancestor (colors follow the page's color-scheme):
+ *   --datalynx-bg                   popover background
+ *   --datalynx-color                text
+ *   --datalynx-muted-color          subtexts
+ *   --datalynx-header-color         group labels
+ *   --datalynx-border-color         lines inside the popover
+ *   --datalynx-field-border-color   the popover's border
+ *   --datalynx-hover-bg             a row under the pointer, or active (the arrow keys are on it)
+ *   --datalynx-accent-color         the active row's outline
+ *   --datalynx-highlight-bg         search match background
+ *   --datalynx-highlight-color      search match text
+ *   --datalynx-radius               rows
+ *   --datalynx-menu-radius          the popover
+ *   --datalynx-shadow               the popover's shadow
+ *   --datalynx-max-height           the popover's height limit
+ *   --datalynx-image-size           the width and height of a row's image (data-image), and its icon's width
+ */
+@supports (anchor-scope: all) and selector(:popover-open) {
+    /* Must live at the top level, not nested inside data-lynx. */
+    @position-try --datalynx-above {
+        top: auto;
+        bottom: calc(anchor(top) + .25rem);
+    }
+
+    @keyframes datalynx-pulse {
+        50% {
+            opacity: .4;
+        }
+    }
+
+    /* ==========================================================================================================
+       Structure
+       ========================================================================================================== */
+    data-lynx {
+        display: contents;
+        anchor-scope: --datalynx;
+
+        [hidden] {
+            display: none !important;
+        }
+
+        > input.dlx-input {
+            anchor-name: --datalynx;
+        }
+
+        /* The popover, anchored below the input, or above it when there's no room. Fixed positioning measures it
+           against the viewport, which the fallback needs to flip it. */
+        > .dlx-menu[popover] {
+            position: fixed;
+            display: revert; /* Undoes display: none from a framework's menu class, so [popover] decides. */
+            position-anchor: --datalynx;
+            position-try-fallbacks: --datalynx-above;
+            inset: auto;
+            margin: 0;
+            top: calc(anchor(bottom) + .25rem);
+            inset-inline-start: anchor(inside); /* The input's start edge, whichever way the page reads. */
+            min-width: anchor-size(width);
+            max-width: max(anchor-size(width), 20rem);
+            max-height: var(--datalynx-max-height, 45vh);
+            overflow: auto;
+            overscroll-behavior: contain;
+        }
+    }
+
+    /* ==========================================================================================================
+       Look
+       ========================================================================================================== */
+    /* Each value is the page's --datalynx-* variable if it sets one, then a skin's --_dlx-skin-* value, then the
+       default. A skin sets its values on data-lynx itself, so the page's variables still win from any ancestor. */
+    data-lynx {
+        --_dlx-bg: var(--datalynx-bg, var(--_dlx-skin-bg, light-dark(#ffffff, #222225)));
+        --_dlx-color: var(--datalynx-color, var(--_dlx-skin-color, light-dark(#1d1c1a, #ececee)));
+        --_dlx-muted: var(--datalynx-muted-color, var(--_dlx-skin-muted-color, light-dark(#6e6c68, #97979e)));
+        --_dlx-header: var(--datalynx-header-color, var(--_dlx-skin-header-color, light-dark(#5f5e5a, #b0b0b6)));
+        --_dlx-border: var(--datalynx-border-color, var(--_dlx-skin-border-color, light-dark(#e3e1dc, #36363b)));
+        --_dlx-field-border: var(--datalynx-field-border-color, var(--_dlx-skin-field-border-color, light-dark(#c4c1bb, #48484e)));
+        --_dlx-hover: var(--datalynx-hover-bg, var(--_dlx-skin-hover-bg, light-dark(#f0efec, #2d2d31)));
+        --_dlx-accent: var(--datalynx-accent-color, var(--_dlx-skin-accent-color, light-dark(#1f63d6, #7aaefc)));
+        --_dlx-highlight-bg: var(--datalynx-highlight-bg, var(--_dlx-skin-highlight-bg, light-dark(#fde58a, #d99a1e)));
+        --_dlx-highlight-color: var(--datalynx-highlight-color, var(--_dlx-skin-highlight-color, light-dark(#1d1c1a, #16120a)));
+        --_dlx-radius: var(--datalynx-radius, var(--_dlx-skin-radius, 6px));
+        --_dlx-menu-radius: var(--datalynx-menu-radius, var(--_dlx-skin-menu-radius, 8px));
+        --_dlx-shadow: var(--datalynx-shadow, var(--_dlx-skin-shadow,
+            0 8px 24px light-dark(rgb(0 0 0 / .12), rgb(0 0 0 / .4)),
+            0 2px 6px light-dark(rgb(0 0 0 / .08), rgb(0 0 0 / .3))));
+    }
+
+    /* Layout: how the parts sit, which a skin keeps. One notch above a single class, so a framework class on a part
+       (say, one that makes it display: block) can't break it, whichever stylesheet loads first. */
+    data-lynx {
+        .dlx-list {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr); /* Long labels are cut short instead of widening the rows. */
+            margin: 0;
+            list-style: none;
+
+            /* Every item, also those in a group's list, so a page's own list rules (like li + li) stay out. */
+            li {
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        /* A group: its header and rows sit in the list's grid as if the group weren't there. */
+        :is(.dlx-group, .dlx-group-list) {
+            display: contents;
+            list-style: none;
+        }
+
+        /* A row: an image and an icon if its suggestion has them, the label, its subtext at the end. */
+        .dlx-item {
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            width: 100%;
+            text-align: start;
+        }
+
+        /* A fixed square, so a row doesn't jump as its image arrives. The whole picture shows, letterboxed if it isn't
+           square. One that fails to load is hidden (see Burrowkit's decorations.js). An icon is as wide, so labels
+           after either line up. */
+        :is(.dlx-item-image, .dlx-item-icon) {
+            flex: none;
+            width: var(--datalynx-image-size, 1.25em);
+        }
+
+        .dlx-item-image {
+            height: var(--datalynx-image-size, 1.25em);
+            object-fit: contain;
+
+            &.dlx-item-image-broken {
+                display: none;
+            }
+        }
+
+        .dlx-item-icon {
+            line-height: 1;
+            text-align: center;
+        }
+
+        .dlx-item-label {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dlx-item-subtext {
+            white-space: nowrap;
+
+            &:empty {
+                display: none;
+            }
+        }
+
+        /* The match count for screen readers: in the page, but not on screen. Pinned to the top, where it can
+           never make the popover scroll. */
+        .dlx-status {
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+
+        /* Skeleton rows, shown at the end of the list while more rows are to come. */
+        .dlx-placeholder {
+            flex: 1;
+        }
+    }
+
+    /* Paint: colors, borders, spacing and type. A skin (which adds the dlx-skin class to data-lynx) leaves these to
+       its framework's classes. */
+    :where(data-lynx:not(.dlx-skin)) {
+        .dlx-menu {
+            box-sizing: border-box;
+            padding: 0;
+            font: inherit;
+            color: var(--_dlx-color);
+            background: var(--_dlx-bg);
+            border: 1px solid var(--_dlx-field-border);
+            border-radius: var(--_dlx-menu-radius);
+            box-shadow: var(--_dlx-shadow);
+        }
+
+        .dlx-list {
+            gap: 1px;
+            padding: .25rem;
+        }
+
+        .dlx-item {
+            margin: 0;
+            padding-block: .3125rem;
+            padding-inline: .625rem;
+            font: inherit;
+            line-height: 1.5;
+            color: inherit;
+            background: none;
+            border: 0;
+            border-radius: var(--_dlx-radius);
+            cursor: pointer;
+
+            &:hover, &[aria-selected="true"] {
+                background: var(--_dlx-hover);
+            }
+
+            /* The active row: what Enter picks. Focus stays in the input, so it's marked as a focused row would be. */
+            &[aria-selected="true"] {
+                outline: 2px solid var(--_dlx-accent);
+                outline-offset: -2px;
+            }
+        }
+
+        .dlx-item-subtext {
+            font-size: .8125em;
+            font-weight: 400;
+            color: var(--_dlx-muted);
+        }
+
+        .dlx-header {
+            margin: 0;
+            padding: .5rem .625rem .125rem;
+            font-size: .75em;
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--_dlx-header);
+        }
+
+        .dlx-divider {
+            height: 0;
+            margin: .25rem .375rem;
+            border: 0;
+            border-top: 1px solid var(--_dlx-border);
+            opacity: 1;
+        }
+
+        .dlx-placeholder-bar {
+            display: block;
+            height: .75em;
+            margin-block: .375em;
+            background: var(--_dlx-border);
+            border-radius: 999px;
+            animation: datalynx-pulse 1.5s ease-in-out infinite;
+
+            @media (prefers-reduced-motion: reduce) {
+                animation: none;
+            }
+        }
+
+        /* Search matches. */
+        :is(.dlx-header, .dlx-item-label, .dlx-item-subtext)::highlight(datalynx-highlight) {
+            color: var(--_dlx-highlight-color);
+            background-color: var(--_dlx-highlight-bg);
+        }
+
+        /* Forced colors, as in Windows High Contrast: the browser swaps every color for a system one. A row under the
+           pointer or active takes the system highlight, since backgrounds don't show. */
+        @media (forced-colors: active) {
+            .dlx-item:is(:hover, [aria-selected="true"]) {
+                forced-color-adjust: none;
+                color: HighlightText;
+                background-color: Highlight;
+
+                > .dlx-item-subtext {
+                    color: inherit;
+                }
+            }
+
+            .dlx-placeholder-bar {
+                forced-color-adjust: none;
+                background-color: GrayText;
+            }
+
+            :is(.dlx-header, .dlx-item-label, .dlx-item-subtext)::highlight(datalynx-highlight) {
+                color: MarkText;
+                background-color: Mark;
+            }
+        }
+    }
+}
