@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
+    "platypicker": "^2.3.0",
     "playwright-core": "^1.65.1",
     "puppeteer-core": "^25.18.1",
     "typescript": "^5.9.3"

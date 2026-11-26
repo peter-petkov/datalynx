@@ -4,111 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Datalynx</title>
-    <script type="importmap">{ "imports": { "burrowkit/": "../node_modules/burrowkit/src/" } }</script>
+    <script type="importmap">{ "imports": { "burrowkit/docs/": "../node_modules/burrowkit/docs/", "burrowkit/": "../node_modules/burrowkit/src/" } }</script>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" href="../node_modules/burrowkit/docs/page.css">
     <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="../node_modules/platypicker/src/platypicker.css">
     <link rel="stylesheet" href="../src/datalynx.css">
-    <script type="module" src="../src/datalynx.js"></script>
+    <script src="../node_modules/burrowkit/docs/theme.js" data-key="dlx-theme"></script>
+    <script type="module" src="./index.js"></script>
 </head>
 <body>
 <header class="topbar">
-    <span class="brand">Datalynx</span>
-    <span class="status">work in progress</span>
+    <a class="brand" href="#getting-started">
+        <span>Datalynx</span>
+        <span class="version" id="version" hidden></span>
+    </a>
+    <nav class="links" aria-label="Project">
+        <a href="https://github.com/peter-petkov/datalynx">GitHub</a>
+        <a href="https://www.npmjs.com/package/datalynx">npm</a>
+    </nav>
+    <div class="segmented" role="radiogroup" aria-label="Color theme">
+        <label><input type="radio" name="theme" value="light">Light</label>
+        <label><input type="radio" name="theme" value="dark">Dark</label>
+        <label><input type="radio" name="theme" value="auto">Auto</label>
+    </div>
 </header>
 
-<main>
-    <section id="getting-started">
-        <h1>Datalynx</h1>
-        <p>A searchable suggestions popover for an <code>&lt;input&gt;</code> with a <code>&lt;datalist&gt;</code>, sibling of Platypicker. The input stays the real control: type freely, or pick a suggestion.</p>
+<div class="layout">
+    <aside class="sidenav">
+        <nav aria-label="Sections">
+            <p>Basics</p>
+            <a href="#getting-started">Getting started</a>
+            <a href="#search">Search</a>
+        </nav>
+    </aside>
 
-        <div class="stage">
-            <label for="fruit">Fruit</label>
-            <data-lynx>
-                <input id="fruit" name="fruit" list="fruits">
-            </data-lynx>
-            <datalist id="fruits">
-                <option value="Apple" data-icon="🍎"></option>
-                <option value="Banana" data-icon="🍌"></option>
-                <option value="Cherry" data-icon="🍒"></option>
-                <option value="Grapes" data-icon="🍇"></option>
-                <option value="Lemon" data-icon="🍋"></option>
-                <option value="Mango" data-icon="🥭"></option>
-                <option value="Orange" data-icon="🍊"></option>
-                <option value="Peach" data-icon="🍑"></option>
-                <option value="Pear" data-icon="🍐"></option>
-                <option value="Pineapple" data-icon="🍍"></option>
-                <option value="Strawberry" data-icon="🍓"></option>
-                <option value="Watermelon" data-icon="🍉"></option>
-            </datalist>
+    <main>
+        <div id="no-support" class="notice" hidden>
+            This browser doesn't support anchor positioning and the popover attribute, so the fields below keep the browser's own datalist.
         </div>
-    </section>
 
-    <section id="labels">
-        <h2>Labels and subtexts</h2>
-        <p>An option's label is its row's text and <code>data-subtext</code> sits beside it; picking it puts its value in the input. Search matches the label, the subtext and the value: "ams", "nl" and "amsterdam" all find Amsterdam, and initials work too ("nyc").</p>
+        <section id="getting-started">
+            <h2>Getting started</h2>
+            <p class="lead">A searchable suggestions popover for an <code>&lt;input&gt;</code> with a <code>&lt;datalist&gt;</code>. The input stays the real control: type anything, or pick a suggestion, and forms, validation and your own code see an ordinary input.</p>
+            <p>Datalynx isn't on npm yet. Once it is, install the package, import it once, and load the stylesheet.</p>
+            <script type="text/plain" data-code="Terminal">npm install datalynx</script>
+            <template data-code="HTML">
+                <link rel="stylesheet" href="node_modules/datalynx/dist/datalynx.css">
+                <script type="module">import "datalynx";</script>
+            </template>
+            <p>Without a build step, load the stylesheet and one of the single files in <code>dist/</code>, from a CDN for example. Each has the element with every translation, about 11 kB gzipped. Load it as a plain script, which sets <code>window.DataLynx</code>:</p>
+            <template data-code="HTML">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datalynx@1/dist/datalynx.min.css">
+                <script src="https://cdn.jsdelivr.net/npm/datalynx@1/dist/datalynx.min.js"></script>
+            </template>
+            <p>Or import it as a module, whose default export is <code>DataLynx</code>:</p>
+            <template data-code="HTML">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datalynx@1/dist/datalynx.min.css">
+                <script type="module">
+                    import DataLynx from "https://cdn.jsdelivr.net/npm/datalynx@1/dist/datalynx.esm.min.js";
+                </script>
+            </template>
+            <p>Every file also comes unminified, without <code>.min</code>. Then wrap the input in <code>&lt;data-lynx&gt;</code>; its datalist can be anywhere in the page. Type a letter, or press <kbd>↓</kbd> to see every suggestion.</p>
+            <div class="example">
+                <template>
+                    <label for="fruit">Fruit</label>
+                    <data-lynx>
+                        <input id="fruit" name="fruit" list="fruits">
+                    </data-lynx>
+                    <datalist id="fruits">
+                        <option value="Apple" data-icon="🍎"></option>
+                        <option value="Banana" data-icon="🍌"></option>
+                        <option value="Cherry" data-icon="🍒"></option>
+                        <option value="Grapes" data-icon="🍇"></option>
+                        <option value="Lemon" data-icon="🍋"></option>
+                        <option value="Mango" data-icon="🥭"></option>
+                        <option value="Orange" data-icon="🍊"></option>
+                        <option value="Peach" data-icon="🍑"></option>
+                        <option value="Pear" data-icon="🍐"></option>
+                        <option value="Pineapple" data-icon="🍍"></option>
+                        <option value="Strawberry" data-icon="🍓"></option>
+                        <option value="Watermelon" data-icon="🍉"></option>
+                    </datalist>
+                </template>
+            </div>
+            <p>The input keeps its value, its form submission and its own <code>input</code> and <code>change</code> events. Picking a suggestion puts its value in the input, as typing it would. Datalynx doesn't style the input: it keeps your page's look, and only the popover is Datalynx's.</p>
+        </section>
 
-        <div class="stage">
-            <label for="airport">Airport</label>
-            <data-lynx>
-                <input id="airport" name="airport" list="airports" placeholder="Code or city">
-            </data-lynx>
-            <datalist id="airports">
-                <option value="AMS" data-subtext="Netherlands">Amsterdam</option>
-                <option value="ATH" data-subtext="Greece">Athens</option>
-                <option value="BCN" data-subtext="Spain">Barcelona</option>
-                <option value="BER" data-subtext="Germany">Berlin</option>
-                <option value="CDG" data-subtext="France">Paris Charles de Gaulle</option>
-                <option value="FRA" data-subtext="Germany">Frankfurt</option>
-                <option value="IST" data-subtext="Türkiye">Istanbul</option>
-                <option value="JFK" data-subtext="United States">New York City JFK</option>
-                <option value="LHR" data-subtext="United Kingdom">London Heathrow</option>
-                <option value="MAD" data-subtext="Spain">Madrid</option>
-                <option value="SOF" data-subtext="Bulgaria">Sofia</option>
-                <option value="ZRH" data-subtext="Switzerland">Zürich</option>
-            </datalist>
-        </div>
-    </section>
-
-    <section id="long-lists">
-        <h2>Long lists</h2>
-        <p>Rows are shown a batch at a time, more as the list scrolls, so a datalist of thousands opens at once.</p>
-
-        <div class="stage">
-            <label for="number">Number</label>
-            <data-lynx>
-                <input id="number" name="number" list="numbers" inputmode="numeric">
-            </data-lynx>
-            <datalist id="numbers"></datalist>
-        </div>
-    </section>
-
-    <section id="autofill">
-        <h2>Autofill</h2>
-        <p>While Datalynx enhances an input it sets <code>autocomplete="off"</code>, or Firefox would show the input's form history over the suggestions. That also turns off the browser's autofill for it. Compare the two fields: both are <code>name="email"</code> with <code>autocomplete="email"</code> and the same suggestions; only the first has Datalynx. Submit an address once so the browser remembers it, then try each field again.</p>
-
-        <form class="stage" action="" method="get">
-            <label for="email">Email, with Datalynx</label>
-            <data-lynx>
-                <input id="email" name="email" type="email" autocomplete="email" list="emails">
-            </data-lynx>
-            <label for="email-plain">Email, without</label>
-            <input id="email-plain" name="email" type="email" autocomplete="email" list="emails">
-            <button>Submit (the browser remembers the address)</button>
-            <datalist id="emails">
-                <option value="ada@example.com" data-subtext="Ada Lovelace"></option>
-                <option value="alan@example.com" data-subtext="Alan Turing"></option>
-                <option value="grace@example.com" data-subtext="Grace Hopper"></option>
-                <option value="katherine@example.com" data-subtext="Katherine Johnson"></option>
-                <option value="linus@example.com" data-subtext="Linus Torvalds"></option>
-                <option value="margaret@example.com" data-subtext="Margaret Hamilton"></option>
-            </datalist>
-        </form>
-    </section>
-</main>
-<script>
-    // 5,000 suggestions for the long list.
-    const numbers = document.getElementById("numbers");
-    numbers.append(...Array.from({ length: 5000 }, (_, i) => new Option("", `Item ${i + 1}`)));
-</script>
+        <section id="search">
+            <h2>Search</h2>
+            <p>Search works as in Platypicker. Case and accents don't matter: "zurich" finds Zürich. The letters you type match in order, the first at the start of a word and the rest anywhere after it, so initials find a suggestion: "nyc" finds New York City JFK. Text inside a word matches too, as "throw" does in Heathrow. Matches are highlighted.</p>
+            <p>A suggestion is found by its label, its value, its <code>data-subtext</code> and its <code>data-icon</code>: "ams", "amsterdam" and "netherlands" all find Amsterdam, whose value is <code>AMS</code>. A row found only by its value shows no highlight, since the value isn't on the row.</p>
+            <p>Strong matches come first, those where every matched part starts a word, then the rest, each in list order. Type "an": Antalya comes first, where "an" starts a word, then the others in list order, from Amsterdam (by its subtext, Netherlands) and Athens (by its initials) to Zürich (Switzerland). Rows only ever join below the ones shown, so nothing moves while you're about to pick it.</p>
+            <div class="example">
+                <template>
+                    <label for="airport">Airport</label>
+                    <data-lynx>
+                        <input id="airport" name="airport" list="airports" placeholder="Code or city">
+                    </data-lynx>
+                    <datalist id="airports">
+                        <option value="AMS" data-subtext="Netherlands">Amsterdam</option>
+                        <option value="AYT" data-subtext="Türkiye">Antalya</option>
+                        <option value="ATH" data-subtext="Greece">Athens</option>
+                        <option value="BCN" data-subtext="Spain">Barcelona</option>
+                        <option value="BER" data-subtext="Germany">Berlin</option>
+                        <option value="CDG" data-subtext="France">Paris Charles de Gaulle</option>
+                        <option value="FRA" data-subtext="Germany">Frankfurt</option>
+                        <option value="IST" data-subtext="Türkiye">Istanbul</option>
+                        <option value="JFK" data-subtext="United States">New York City JFK</option>
+                        <option value="LHR" data-subtext="United Kingdom">London Heathrow</option>
+                        <option value="MAD" data-subtext="Spain">Madrid</option>
+                        <option value="MXP" data-subtext="Italy">Milan Malpensa</option>
+                        <option value="SOF" data-subtext="Bulgaria">Sofia</option>
+                        <option value="ZRH" data-subtext="Switzerland">Zürich</option>
+                    </datalist>
+                </template>
+            </div>
+        </section>
+    </main>
+</div>
 </body>
 </html>
