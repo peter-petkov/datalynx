@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Datalynx</title>
+    <script type="importmap">{ "imports": { "burrowkit/": "../node_modules/burrowkit/src/" } }</script>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="../src/datalynx.css">
+    <script type="module" src="../src/datalynx.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -16,27 +19,73 @@
 <main>
     <section id="getting-started">
         <h1>Datalynx</h1>
-        <p>A searchable suggestions popover for an <code>&lt;input&gt;</code> with a <code>&lt;datalist&gt;</code>, sibling of Platypicker. Nothing is built yet: the field below is the browser's own datalist, the baseline Datalynx enhances.</p>
+        <p>A searchable suggestions popover for an <code>&lt;input&gt;</code> with a <code>&lt;datalist&gt;</code>, sibling of Platypicker. The input stays the real control: type freely, or pick a suggestion.</p>
 
         <div class="stage">
             <label for="fruit">Fruit</label>
-            <input id="fruit" name="fruit" list="fruits" autocomplete="off">
+            <data-lynx>
+                <input id="fruit" name="fruit" list="fruits">
+            </data-lynx>
             <datalist id="fruits">
-                <option value="Apple">🍎</option>
-                <option value="Banana">🍌</option>
-                <option value="Cherry">🍒</option>
-                <option value="Grapes">🍇</option>
-                <option value="Lemon">🍋</option>
-                <option value="Mango">🥭</option>
-                <option value="Orange">🍊</option>
-                <option value="Peach">🍑</option>
-                <option value="Pear">🍐</option>
-                <option value="Pineapple">🍍</option>
-                <option value="Strawberry">🍓</option>
-                <option value="Watermelon">🍉</option>
+                <option value="Apple" data-icon="🍎"></option>
+                <option value="Banana" data-icon="🍌"></option>
+                <option value="Cherry" data-icon="🍒"></option>
+                <option value="Grapes" data-icon="🍇"></option>
+                <option value="Lemon" data-icon="🍋"></option>
+                <option value="Mango" data-icon="🥭"></option>
+                <option value="Orange" data-icon="🍊"></option>
+                <option value="Peach" data-icon="🍑"></option>
+                <option value="Pear" data-icon="🍐"></option>
+                <option value="Pineapple" data-icon="🍍"></option>
+                <option value="Strawberry" data-icon="🍓"></option>
+                <option value="Watermelon" data-icon="🍉"></option>
             </datalist>
         </div>
     </section>
+
+    <section id="labels">
+        <h2>Labels and subtexts</h2>
+        <p>An option's label is its row's text and <code>data-subtext</code> sits beside it; picking it puts its value in the input. Search matches the label, the subtext and the value: "ams", "nl" and "amsterdam" all find Amsterdam, and initials work too ("nyc").</p>
+
+        <div class="stage">
+            <label for="airport">Airport</label>
+            <data-lynx>
+                <input id="airport" name="airport" list="airports" placeholder="Code or city">
+            </data-lynx>
+            <datalist id="airports">
+                <option value="AMS" data-subtext="Netherlands">Amsterdam</option>
+                <option value="ATH" data-subtext="Greece">Athens</option>
+                <option value="BCN" data-subtext="Spain">Barcelona</option>
+                <option value="BER" data-subtext="Germany">Berlin</option>
+                <option value="CDG" data-subtext="France">Paris Charles de Gaulle</option>
+                <option value="FRA" data-subtext="Germany">Frankfurt</option>
+                <option value="IST" data-subtext="Türkiye">Istanbul</option>
+                <option value="JFK" data-subtext="United States">New York City JFK</option>
+                <option value="LHR" data-subtext="United Kingdom">London Heathrow</option>
+                <option value="MAD" data-subtext="Spain">Madrid</option>
+                <option value="SOF" data-subtext="Bulgaria">Sofia</option>
+                <option value="ZRH" data-subtext="Switzerland">Zürich</option>
+            </datalist>
+        </div>
+    </section>
+
+    <section id="long-lists">
+        <h2>Long lists</h2>
+        <p>Rows are shown a batch at a time, more as the list scrolls, so a datalist of thousands opens at once.</p>
+
+        <div class="stage">
+            <label for="number">Number</label>
+            <data-lynx>
+                <input id="number" name="number" list="numbers" inputmode="numeric">
+            </data-lynx>
+            <datalist id="numbers"></datalist>
+        </div>
+    </section>
 </main>
+<script>
+    // 5,000 suggestions for the long list.
+    const numbers = document.getElementById("numbers");
+    numbers.append(...Array.from({ length: 5000 }, (_, i) => new Option("", `Item ${i + 1}`)));
+</script>
 </body>
 </html>
