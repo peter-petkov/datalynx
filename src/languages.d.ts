@@ -6,6 +6,8 @@ export type { CountedText, PluralForms } from "burrowkit/languages.js";
 export interface Texts {
     /** What screen readers hear once typing pauses: how many suggestions match. */
     matchesLabel: CountedText;
+    /** The message of an input with `strict` whose text matches no suggestion. */
+    invalidValue: string;
 }
 
 /**

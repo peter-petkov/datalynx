@@ -35,6 +35,8 @@ export default class DataLynx extends HTMLElement {
     static languageMap = {
         // What screen readers hear once typing pauses: how many suggestions match.
         matchesLabel: { one: "{count} match", other: "{count} matches" },
+        // The message of an input with strict whose text matches no suggestion.
+        invalidValue: "Please enter a value from the list.",
     };
 
     /**
@@ -52,7 +54,7 @@ export default class DataLynx extends HTMLElement {
     // its own input, and the popover attribute. Browsers without them keep the native datalist.
     static #isSupported = CSS.supports("anchor-scope", "all") && CSS.supports("selector(:popover-open)");
 
-    static observedAttributes = ["batch-size"];
+    static observedAttributes = ["batch-size", "strict"];
 
     #internals;
     #input;
@@ -67,6 +69,7 @@ export default class DataLynx extends HTMLElement {
     #stale = false;         // Whether the datalist changed since the list last caught up with it.
     #reconcileTimer;
     #picking = false;       // Whether the input events of a pick are being fired.
+    #invalidMessage = null; // The custom validity message Datalynx set on the input, while it's set.
 
     constructor() {
         super();
@@ -122,6 +125,7 @@ export default class DataLynx extends HTMLElement {
         this.#source.observe(() => this.#datalistChanged());
 
         DataLynx.#registry.set(this.#input, this);
+        this.#validate();
     }
 
     disconnectedCallback() {
@@ -133,6 +137,7 @@ export default class DataLynx extends HTMLElement {
         this.#highlighter.clear();
         this.#view.destroy();
         this.#internals.states.delete("open");
+        this.#setInvalidMessage("");
 
         DataLynx.#registry.delete(this.#input);
 
@@ -145,8 +150,9 @@ export default class DataLynx extends HTMLElement {
         this.#input = this.#datalist = this.#source = this.#highlighter = this.#view = null;
     }
 
-    attributeChangedCallback() {
-        this.#view?.configure(this.#viewConfig());
+    attributeChangedCallback(name) {
+        if (name === "strict") this.#validate();
+        else this.#view?.configure(this.#viewConfig());
     }
 
     /** The <datalist> the input's suggestions come from. The input's own `list` is taken off while it's enhanced. */
@@ -167,6 +173,18 @@ export default class DataLynx extends HTMLElement {
 
     set batchSize(value) {
         this.setAttribute("batch-size", value);
+    }
+
+    /**
+     * Whether text that matches no suggestion makes the input invalid. The text stays as typed, and a match that
+     * differs only in case or accents, or a suggestion's label, is corrected to the suggestion's value on change.
+     */
+    get strict() {
+        return this.hasAttribute("strict");
+    }
+
+    set strict(value) {
+        this.toggleAttribute("strict", Boolean(value));
     }
 
     #viewConfig() {
@@ -192,6 +210,7 @@ export default class DataLynx extends HTMLElement {
         this.#locale = locale;
         this.#texts = texts;
         this.#view?.configure(this.#viewConfig());
+        this.#validate();
 
         ready?.then(() => {
             if (this.#view && Languages.of(this) === locale) this.#syncLanguage();
@@ -285,6 +304,7 @@ export default class DataLynx extends HTMLElement {
             } finally {
                 this.#picking = false;
             }
+            this.#validate();
         }
         input.focus({ preventScroll: true });
     }
@@ -299,7 +319,19 @@ export default class DataLynx extends HTMLElement {
 
             if (this.#isOpen) this.#refilter();
             else if (input.value.trim()) this.#open();
+            this.#validate();
         }, { signal });
+
+        // With strict, leaving the field corrects a match to its suggestion's value. Caught on the way down, so the
+        // input's own change listeners and everything above already see the corrected value.
+        this.addEventListener("change", e => {
+            if (e.target === input && !this.#picking) this.#correct();
+        }, { signal, capture: true });
+
+        // A form reset changes the value without an input event, once its reset event is over.
+        document.addEventListener("reset", e => {
+            if (e.target === input.form) setTimeout(() => this.#validate());
+        }, { signal, capture: true });
 
         // A click opens it once the input has focus: the click that focuses it doesn't, so clicking into a field
         // stays quiet, as tabbing into it does.
@@ -313,7 +345,10 @@ export default class DataLynx extends HTMLElement {
         }, { signal });
 
         // Focus leaving the input closes it. A press on the popover keeps focus in the input (see SuggestionsView).
-        input.addEventListener("blur", () => this.#close(), { signal });
+        input.addEventListener("blur", () => {
+            this.#close();
+            this.#validate();
+        }, { signal });
 
         input.addEventListener("keydown", e => {
             if (e.isComposing || e.ctrlKey || e.metaKey) return;
@@ -376,10 +411,16 @@ export default class DataLynx extends HTMLElement {
 
     #datalistChanged() {
         this.#stale = true;
-        if (!this.#isOpen) return;
+        if (!this.#isOpen) {
+            if (this.strict) this.#validate();
+            return;
+        }
 
         clearTimeout(this.#reconcileTimer);
-        this.#reconcileTimer = setTimeout(() => this.#catchUp(), DataLynx.#reconcileDelay);
+        this.#reconcileTimer = setTimeout(() => {
+            this.#catchUp();
+            this.#validate();
+        }, DataLynx.#reconcileDelay);
     }
 
     /**
@@ -399,6 +440,68 @@ export default class DataLynx extends HTMLElement {
 
         this.#view.reconcile(this.#query());
         if (this.#view.isEmpty) this.#close();
+    }
+
+    // -----------------------------------------------------------------
+    // strict: text that matches no suggestion is invalid
+    // -----------------------------------------------------------------
+
+    /**
+     * With strict, makes the input invalid while its text matches no suggestion (see DatalistSource.match), and valid
+     * again once it does, once it's empty, or once strict is off. The text itself is never changed here. Runs on
+     * input, change, focus out, a form reset, changes to the datalist, connect, strict turned on or off, and a change
+     * of language, which each run notices: the message is in the element's language.
+     */
+    #validate() {
+        if (!this.#source) return;
+        if (Languages.of(this) !== this.#locale) return this.#syncLanguage(); // which validates again
+
+        let message = "";
+        if (this.strict && this.#input.value.trim()) {
+            this.#catchUp();
+            if (!this.#source.match(this.#input.value, this.#locale)) message = this.#text("invalidValue");
+        }
+        this.#setInvalidMessage(message);
+    }
+
+    /**
+     * Sets Datalynx's custom validity message on the input, or clears it with "". A message the page set itself is
+     * left alone: Datalynx neither replaces nor clears it.
+     */
+    #setInvalidMessage(message) {
+        const input = this.#input;
+        const own = this.#invalidMessage !== null
+            && (!input.willValidate || input.validationMessage === this.#invalidMessage);
+        if (input.validity.customError && !own) return;
+
+        if (message) {
+            input.setCustomValidity(message);
+            this.#invalidMessage = message;
+        } else if (this.#invalidMessage !== null) {
+            if (own) input.setCustomValidity("");
+            this.#invalidMessage = null;
+        }
+    }
+
+    /**
+     * With strict, as a change reaches the input: text that matches a suggestion without being its exact value
+     * (another case or accents, or its label) becomes that value. It fires input, and the change carries on with the
+     * new value, so the page sees input and change as for a pick.
+     */
+    #correct() {
+        const input = this.#input;
+        const entry = this.strict && this.#source.match(input.value, this.#locale);
+
+        if (entry && input.value !== entry.value) {
+            input.value = entry.value;
+            this.#picking = true;
+            try {
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+            } finally {
+                this.#picking = false;
+            }
+        }
+        this.#validate();
     }
 }
 

@@ -4,4 +4,5 @@
 //   import hi from "datalynx/src/languages/hi.js"; DataLynx.languages.hi = hi;
 export default {
     matchesLabel: { one: "{count} मिलान", other: "{count} मिलान" },
+    invalidValue: "कृपया सूची में से कोई मान डालें।",
 };

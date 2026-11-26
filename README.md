@@ -39,11 +39,43 @@ The input keeps its value, its form submission and its own `input` and `change` 
 
 ## Attributes
 
-| Attribute    | Type   | Default | Description |
-|--------------|--------|---------|-------------|
-| `batch-size` | number | `50`    | How many suggestions the list works with at a time: the rows shown first, and how far ahead it searches. More rows are shown a few at a time as you scroll. `0` renders them all. A missing or invalid value uses the default. |
+| Attribute    | Type    | Default | Description |
+|--------------|---------|---------|-------------|
+| `batch-size` | number  | `50`    | How many suggestions the list works with at a time: the rows shown first, and how far ahead it searches. More rows are shown a few at a time as you scroll. `0` renders them all. A missing or invalid value uses the default. |
+| `strict`     | boolean | off     | Text that matches no suggestion makes the input invalid, left as typed; a match in another case or with other accents, or a suggestion's label, is corrected to its value on change. See [Validation](#validation). |
 
-It's reflected as the `batchSize` property.
+They're reflected as the `batchSize` and `strict` properties.
+
+## Validation
+
+An input with a datalist takes free text, and Datalynx never rejects or clears what's typed. With `strict`, text that matches no suggestion makes the input invalid (`setCustomValidity`), so the form won't submit, the browser shows "Please enter a value from the list." and `:user-invalid` and `:invalid` apply:
+
+```html
+<form>
+  <data-lynx strict>
+    <input name="airport" list="airports" required>
+  </data-lynx>
+  <button>Book</button>
+</form>
+<datalist id="airports">
+  <option value="SOF" data-subtext="Bulgaria">Sofia</option>
+  <option value="ZRH" data-subtext="Switzerland">Zürich</option>
+</datalist>
+```
+
+- **What matches.** The text, trimmed, with case and accents folded as search folds them, is a suggestion's value ("sof" or "Sof" for `SOF`), or the label of exactly one suggestion ("zurich" for Zürich). A label two or more suggestions share matches none of them. When the text is one suggestion's value and another's label, the value wins. Hidden and disabled options don't count.
+- **The correction.** On `change` (leaving the field, or Enter), a match that isn't the exact value becomes it: "zurich" turns into `ZRH`, firing `input` and `change` as a pick does. With several suggestions of the same folded value, the first one's.
+- **Empty is valid.** Use `required` for a field that must be filled.
+- **When it's checked.** On `input`, `change`, focus out and a form reset, when the datalist's options change, when `strict` is turned on, and in the element's current language. A script that sets `input.value` fires no event, so Datalynx doesn't see it: dispatch one after it, `input.dispatchEvent(new Event("input", { bubbles: true }))`.
+- **The page's own messages.** Turning `strict` off, or removing the element, clears Datalynx's message. A message the page set itself with `setCustomValidity` is left alone, neither replaced nor cleared.
+
+Datalynx doesn't style the invalid input; the page does, for example:
+
+```css
+data-lynx input:user-invalid {
+  border-color: crimson;
+}
+```
 
 ## Theming
 
@@ -71,13 +103,14 @@ The colors follow the page's `color-scheme`, light or dark. Every part has a fix
 
 ## Localization
 
-Datalynx follows the nearest `lang` attribute, with translations for the same 22 languages as Platypicker, loaded only when needed. It has one text:
+Datalynx follows the nearest `lang` attribute, with translations for the same 22 languages as Platypicker, loaded only when needed. It has two texts:
 
-| Text           | English                        | Where |
-|----------------|--------------------------------|-------|
-| `matchesLabel` | {count} match, {count} matches | read out to screen readers once typing pauses |
+| Text           | English                             | Where |
+|----------------|-------------------------------------|-------|
+| `matchesLabel` | {count} match, {count} matches      | read out to screen readers once typing pauses |
+| `invalidValue` | Please enter a value from the list. | the message of a `strict` input whose text matches no suggestion |
 
-Change it in `DataLynx.languageMap` (English) or `DataLynx.languages` (by language code), as in Platypicker.
+Change them in `DataLynx.languageMap` (English) or `DataLynx.languages` (by language code), as in Platypicker.
 
 ## JavaScript API
 
@@ -89,6 +122,7 @@ DataLynx.defaultBatchSize = 100;                            // for elements with
 DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count} suggestions" };
 DataLynx.languages.de = { matchesLabel: "{count} Vorschläge" };
 DataLynx.classes.menu = "my-menu";
+document.querySelector("data-lynx").strict = true;          // see Validation
 ```
 
 `<data-lynx>` has the custom state `:state(open)` while its popover is open. Types come with the package (`src/datalynx.d.ts`).

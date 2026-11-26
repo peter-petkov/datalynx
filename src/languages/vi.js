@@ -4,4 +4,5 @@
 //   import vi from "datalynx/src/languages/vi.js"; DataLynx.languages.vi = vi;
 export default {
     matchesLabel: { other: "{count} kết quả" },
+    invalidValue: "Vui lòng nhập một giá trị trong danh sách.",
 };

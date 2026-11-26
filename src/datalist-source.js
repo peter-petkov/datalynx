@@ -97,6 +97,23 @@ export default class DatalistSource {
         });
     }
 
+    /**
+     * The suggestion a text stands for, as strict sees it, or null. Compared trimmed and folded (case and accents
+     * don't matter, as in search): the first suggestion whose value is the text, or else the one suggestion whose
+     * label is. A label that two or more suggestions share matches none of them.
+     */
+    match(text, locale = "") {
+        const folded = this.fold(text.trim(), locale);
+        if (!folded) return null;
+
+        const fold = text => this.fold(text.trim(), locale);
+        const byValue = this.#entries.find(entry => fold(entry.value) === folded);
+        if (byValue) return byValue;
+
+        const byLabel = this.#entries.filter(entry => fold(entry.label) === folded);
+        return byLabel.length === 1 ? byLabel[0] : null;
+    }
+
     /** Folds a text (see Search.fold), remembering it. */
     fold(text, locale = "") {
         return this.#cache.fold(text, locale);

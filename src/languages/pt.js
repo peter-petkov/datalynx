@@ -4,4 +4,5 @@
 //   import pt from "datalynx/src/languages/pt.js"; DataLynx.languages.pt = pt;
 export default {
     matchesLabel: { one: "{count} resultado", many: "{count} de resultados", other: "{count} resultados" },
+    invalidValue: "Insira um valor da lista.",
 };

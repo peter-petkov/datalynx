@@ -4,4 +4,5 @@
 //   import ur from "datalynx/src/languages/ur.js"; DataLynx.languages.ur = ur;
 export default {
     matchesLabel: { one: "{count} مماثلت", other: "{count} مماثلتیں" },
+    invalidValue: "براہ کرم فہرست میں سے کوئی قدر درج کریں۔",
 };

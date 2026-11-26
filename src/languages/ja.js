@@ -4,4 +4,5 @@
 //   import ja from "datalynx/src/languages/ja.js"; DataLynx.languages.ja = ja;
 export default {
     matchesLabel: { other: "{count} 件" },
+    invalidValue: "リストにある値を入力してください。",
 };

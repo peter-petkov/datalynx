@@ -4,4 +4,5 @@
 //   import bn from "datalynx/src/languages/bn.js"; DataLynx.languages.bn = bn;
 export default {
     matchesLabel: { one: "{count}টি মিল", other: "{count}টি মিল" },
+    invalidValue: "অনুগ্রহ করে তালিকা থেকে একটি মান লিখুন।",
 };

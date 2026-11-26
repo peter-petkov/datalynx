@@ -4,4 +4,5 @@
 //   import ko from "datalynx/src/languages/ko.js"; DataLynx.languages.ko = ko;
 export default {
     matchesLabel: { other: "{count}개 일치" },
+    invalidValue: "목록에 있는 값을 입력하세요.",
 };

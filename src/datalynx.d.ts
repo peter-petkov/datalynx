@@ -27,6 +27,8 @@ export default class DataLynx extends HTMLElement {
     readonly datalist: HTMLDataListElement | null;
     /** The `batch-size` attribute: rows per batch, 0 for all at once. */
     batchSize: number;
+    /** The `strict` attribute: text that matches no suggestion makes the input invalid (it stays as typed). */
+    strict: boolean;
 }
 
 declare global {

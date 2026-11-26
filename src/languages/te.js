@@ -4,4 +4,5 @@
 //   import te from "datalynx/src/languages/te.js"; DataLynx.languages.te = te;
 export default {
     matchesLabel: { one: "{count} సరిపోలిక", other: "{count} సరిపోలికలు" },
+    invalidValue: "దయచేసి జాబితాలోని ఒక విలువను నమోదు చేయండి.",
 };

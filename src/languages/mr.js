@@ -4,4 +4,5 @@
 //   import mr from "datalynx/src/languages/mr.js"; DataLynx.languages.mr = mr;
 export default {
     matchesLabel: { one: "{count} जुळणी", other: "{count} जुळण्या" },
+    invalidValue: "कृपया सूचीमधील एखादे मूल्य प्रविष्ट करा.",
 };
