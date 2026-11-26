@@ -8,7 +8,7 @@
 }
 
 /* A field is a label above its input, on the stage, or in a form or a div (for its lang or dir) on it. */
-.stage, .stage > :is(form, div):not(.stage-extra) {
+.stage, .stage > :is(form, div):not(.stage-extra), [data-playground-host] > div {
     display: grid;
     justify-items: start;
     gap: 0.4rem;
@@ -22,7 +22,7 @@
     }
 }
 
-.stage > :is(form, div):not(.stage-extra) {
+.stage > :is(form, div):not(.stage-extra), [data-playground-host] > div {
     justify-self: stretch;
 
     & + div {

@@ -52,6 +52,9 @@
             <a href="#browser-support">Browser support</a>
             <p>Tools</p>
             <a href="#reference">Reference</a>
+            <a href="#playground">Playground</a>
+            <p>Project</p>
+            <a href="#about">About</a>
         </nav>
     </aside>
 
@@ -494,7 +497,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
             </ul>
             <p class="support-check" data-support></p>
             <p>Without support, <code>&lt;data-lynx&gt;</code> does nothing: the input keeps its <code>list</code>, and the browser's own datalist works as it always did, so forms keep working everywhere.</p>
-            <p>So far Datalynx has been checked on the desktop, in Chrome, in Firefox 160 and in WebKit 27.2 (the engine of Safari, through Playwright). Safari itself and phones haven't been tested yet, and on phones Datalynx shows the same popover as on the desktop: a layout for phones is still to come.</p>
+            <p>So far Datalynx has been checked on the desktop, in Chrome, in Firefox 161 and in WebKit 27.2 (the engine of Safari, through Playwright). Safari itself and phones haven't been tested yet, and on phones Datalynx shows the same popover as on the desktop: a layout for phones is still to come.</p>
             <p>A few things to keep in mind:</p>
             <ul>
                 <li>Only a direct child input is enhanced: <code>&lt;data-lynx&gt;&lt;input list&gt;</code>. Its datalist can be anywhere in the same document or shadow root.</li>
@@ -596,6 +599,74 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                 </table>
             </div>
             <p>The keys are listed under <a href="#keyboard">Opening and keyboard</a>.</p>
+        </section>
+
+        <section id="playground">
+            <h2>Playground</h2>
+            <p>Put a field together. Every change rebuilds it from the markup below, keeping what you had typed.</p>
+            <div class="playground" data-playground>
+                <form class="playground-controls">
+                    <fieldset>
+                        <legend>Suggestions</legend>
+                        <platy-picker>
+                            <select name="list" aria-label="Suggestions">
+                                <option value="fruits">Fruit, with icons</option>
+                                <option value="airports">Airports, with labels and subtexts</option>
+                                <option value="countries">Countries, with flags</option>
+                                <option value="items">Items (5,000)</option>
+                            </select>
+                        </platy-picker>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Field</legend>
+                        <label class="field-row">batch-size <input class="field" type="number" name="batch-size" min="0" placeholder="50"></label>
+                        <label class="field-row">placeholder <input class="field" name="placeholder" value="Type or press ↓"></label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Page</legend>
+                        <label class="field-row">lang
+                            <platy-picker>
+                                <select name="lang" aria-label="Language">
+                                    <option value="">the page's (English)</option>
+                                    <option value="de">de, German</option>
+                                    <option value="fr">fr, French</option>
+                                    <option value="ja">ja, Japanese</option>
+                                    <option value="ar">ar, Arabic</option>
+                                </select>
+                            </platy-picker>
+                        </label>
+                        <label class="field-row">dir
+                            <platy-picker>
+                                <select name="dir" aria-label="Direction">
+                                    <option value="">the page's (ltr)</option>
+                                    <option value="rtl">rtl</option>
+                                </select>
+                            </platy-picker>
+                        </label>
+                    </fieldset>
+                </form>
+                <div class="stage stage-column">
+                    <div data-playground-host></div>
+                    <ol class="log" aria-label="Events" aria-live="polite"></ol>
+                </div>
+            </div>
+        </section>
+
+        <section id="about">
+            <h2>About</h2>
+            <p>Datalynx is an open-source web component that enhances inputs with a datalist. It's developed on <a href="https://github.com/peter-petkov/datalynx">GitHub</a>, and will be published to <a href="https://www.npmjs.com/package/datalynx">npm</a> with its first release. Bug reports and feature requests go to <a href="https://github.com/peter-petkov/datalynx/issues">GitHub issues</a>, and pull requests are welcome, including corrections to the translations.</p>
+
+            <h3>The family</h3>
+            <p>Datalynx is a sibling of <a href="https://github.com/peter-petkov/platypicker">Platypicker</a>, which does the same for a <code>&lt;select&gt;</code>: a searchable popover in the same look, with the same search, long lists and languages. An input takes free text and a datalist only suggests, so the two differ where that matters: here focus stays in the input, which is a combobox. What they share lives in <a href="https://github.com/peter-petkov/burrowkit">Burrowkit</a>, their common core, down to this page's header, navigation and code panels.</p>
+
+            <h3>License</h3>
+            <p>Datalynx is released under the <a href="https://github.com/peter-petkov/datalynx/blob/main/LICENSE">MIT License</a>. You can use, copy, modify and distribute it, in commercial projects too, as long as the copyright notice and the license text come with it. It comes without warranty of any kind.</p>
+
+            <h3>AI usage</h3>
+            <p>Datalynx grows out of AtmosAutocomplete, an autocomplete I wrote by hand and used in my own projects. Much of Datalynx's code has been written with the help of Claude, while the engineering direction, code review, testing and feature ideas remain my own.</p>
+
+            <h3>Author</h3>
+            <p>Made by Peter Petkov (<a href="https://github.com/peter-petkov">@peter-petkov</a> on GitHub).</p>
         </section>
     </main>
 </div>

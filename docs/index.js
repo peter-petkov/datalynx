@@ -2,8 +2,8 @@
 // panels, navigation, version, support notice) comes from Burrowkit's docs/page.js; theme.js applied the saved theme
 // in <head>. Platypicker is loaded for the page's own selects (the section picker on narrow screens), not by Datalynx.
 import {
-    eventLog, setupCodeBlocks, setupExamples, setupNavigation, setupSupportNotice, setupTheme, setupTheming,
-    setupVersion
+    codePanel, eventLog, printHTML, setupCodeBlocks, setupExamples, setupNavigation, setupSupportNotice, setupTheme,
+    setupTheming, setupVersion
 } from "burrowkit/docs/page.js";
 
 // ---------------------------------------------------------------------------
@@ -82,6 +82,90 @@ async function setupLiveDemo() {
 }
 
 // ---------------------------------------------------------------------------
+// Playground. Every change builds a new field from the form, prints it, and swaps it in.
+// ---------------------------------------------------------------------------
+
+const fruit = (value, icon) => `<option value="${value}" data-icon="${icon}"></option>`;
+const airport = (code, city, country) => `<option value="${code}" data-subtext="${country}">${city}</option>`;
+const country = (code, name) => `<option value="${name}" data-image="flags/${code}.svg"></option>`;
+
+// The flags are in docs/flags, named by country code.
+const PLAYGROUND_LISTS = {
+    fruits: () => [["Apple", "🍎"], ["Banana", "🍌"], ["Cherry", "🍒"], ["Grapes", "🍇"], ["Lemon", "🍋"], ["Mango", "🥭"],
+        ["Orange", "🍊"], ["Peach", "🍑"], ["Pear", "🍐"], ["Pineapple", "🍍"], ["Strawberry", "🍓"], ["Watermelon", "🍉"]]
+        .map(item => fruit(...item)).join(""),
+    airports: () => [["AMS", "Amsterdam", "Netherlands"], ["ATH", "Athens", "Greece"], ["BCN", "Barcelona", "Spain"],
+        ["BER", "Berlin", "Germany"], ["CDG", "Paris Charles de Gaulle", "France"], ["IST", "Istanbul", "Türkiye"],
+        ["JFK", "New York City JFK", "United States"], ["LHR", "London Heathrow", "United Kingdom"],
+        ["SOF", "Sofia", "Bulgaria"], ["ZRH", "Zürich", "Switzerland"]].map(item => airport(...item)).join(""),
+    countries: () => [["at", "Austria"], ["fr", "France"], ["de", "Germany"], ["id", "Indonesia"], ["it", "Italy"],
+        ["jp", "Japan"], ["ng", "Nigeria"], ["pl", "Poland"], ["se", "Sweden"], ["ua", "Ukraine"]]
+        .map(item => country(...item)).join(""),
+    items: () => Array.from({ length: 5000 }, (_, i) => `<option value="Item ${i + 1}"></option>`).join(""),
+};
+
+async function setupPlayground() {
+    const root = document.querySelector("[data-playground]");
+    const form = root.querySelector("form");
+    const host = root.querySelector("[data-playground-host]");
+    const write = eventLog(root.querySelector(".log"));
+    const panel = codePanel([{ label: "HTML", text: "", html: true }]);
+    let timer;
+
+    root.append(panel);
+
+    const value = name => form.elements[name].value.trim();
+
+    const build = () => {
+        const typed = host.querySelector("input")?.value ?? "";
+        const label = document.createElement("label");
+        const lynx = document.createElement("data-lynx");
+        const input = document.createElement("input");
+        const datalist = document.createElement("datalist");
+        const list = value("list");
+        let nodes = [label, lynx, datalist];
+
+        label.htmlFor = "playground-input";
+        label.textContent = { fruits: "Fruit", airports: "Airport", countries: "Country", items: "Item" }[list];
+        if (value("batch-size")) lynx.setAttribute("batch-size", value("batch-size"));
+        input.id = "playground-input";
+        input.name = list;
+        input.setAttribute("list", "playground-list");
+        if (value("placeholder")) input.placeholder = value("placeholder");
+        datalist.id = "playground-list";
+        datalist.innerHTML = PLAYGROUND_LISTS[list]();
+        lynx.append(input);
+
+        // lang and dir go on a wrapper, as a page would set them on an ancestor.
+        if (value("lang") || value("dir")) {
+            const wrapper = document.createElement("div");
+            if (value("lang")) wrapper.lang = value("lang");
+            if (value("dir")) wrapper.dir = value("dir");
+            wrapper.append(...nodes);
+            nodes = [wrapper];
+        }
+
+        panel.setCode("HTML", printHTML(nodes));
+        input.value = typed;
+        for (const type of ["input", "change"]) input.addEventListener(type, () => write(`${type}: "${input.value}"`));
+        host.replaceChildren(...nodes);
+    };
+
+    // The pickers among the controls rebuild on change, once a pick is made; text fields wait for a pause in typing.
+    form.addEventListener("input", event => {
+        if (event.target.localName === "select") return;
+        clearTimeout(timer);
+        timer = setTimeout(build, 250);
+    });
+    form.addEventListener("change", event => {
+        if (event.target.localName === "select") build();
+    });
+    form.addEventListener("submit", event => event.preventDefault());
+
+    build();
+}
+
+// ---------------------------------------------------------------------------
 // Page setup. The examples are put on their stages first, then Platypicker and Datalynx are imported, which define
 // their elements and enhance what's there.
 // ---------------------------------------------------------------------------
@@ -95,5 +179,6 @@ setupDatalynxSupport();
 setupEventsDemo();
 setupLiveDemo();
 setupTheming(document.querySelector("[data-theming]"), "data-lynx");
+setupPlayground();
 
 await Promise.all([import("../node_modules/platypicker/src/platypicker.js"), import("../src/datalynx.js")]);
