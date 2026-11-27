@@ -1,5 +1,6 @@
 "use strict";
 
+import Announcer from "burrowkit/announcer.js";
 import createDecorations from "burrowkit/decorations.js";
 import RowList from "burrowkit/list.js";
 import { addClasses, fixedClass, toggleClasses } from "./classes.js";
@@ -27,7 +28,6 @@ export default class SuggestionsView {
     #rowList;
     #list;
     #status;                // Tells screen readers how many suggestions match, once typing pauses, and what a ghost put in.
-    #announceTimer;
     #config = {};
     #active = null;         // The record of the active row, or null.
     #lastRowId = 0;
@@ -61,12 +61,12 @@ export default class SuggestionsView {
 
         // A polite live region, visually hidden, which screen readers read out when its text changes. Outside the
         // popover, so what it says is heard also while the popover is closed (an accepted ghost).
-        this.#status = document.createElement("div");
-        addClasses(this.#status, "status");
-        this.#status.setAttribute("role", "status");
+        const status = document.createElement("div");
+        addClasses(status, "status");
+        this.#status = new Announcer(status);
 
         this.#popover.append(this.#list);
-        this.#popover.after(this.#status);
+        this.#popover.after(status);
         this.#wire();
     }
 
@@ -80,10 +80,10 @@ export default class SuggestionsView {
     }
 
     destroy() {
-        clearTimeout(this.#announceTimer);
+        this.#status.cancel();
         this.#rowList.destroy();
         this.#popover.remove();
-        this.#status.remove();
+        this.#status.element.remove();
         this.#input.removeAttribute("aria-activedescendant");
     }
 
@@ -120,8 +120,7 @@ export default class SuggestionsView {
         this.#setActive(null);
         this.#popover.scrollTop = 0;
 
-        clearTimeout(this.#announceTimer);
-        this.#announceTimer = setTimeout(() => this.#announce(), 500);
+        this.#status.sayLater(() => this.#matchesText(), 500);
     }
 
     /**
@@ -146,23 +145,19 @@ export default class SuggestionsView {
 
     /**
      * Has screen readers read out a text, politely, whether the popover is open or not. It replaces a match count
-     * still to come. Emptied first, so the same text twice is heard twice.
+     * still to come, and the same text twice is heard twice (see Burrowkit's Announcer).
      */
     say(text) {
-        clearTimeout(this.#announceTimer);
-        this.#status.textContent = "";
-        this.#announceTimer = setTimeout(() => this.#status.textContent = text, 100);
+        this.#status.say(text);
     }
 
-    #announce() {
+    /** What screen readers hear once typing pauses: how many suggestions match, while the popover is open. */
+    #matchesText() {
         const view = this.#rowList.view;
-        if (!view?.query || this.#signal.aborted || !this.#popover.matches(":popover-open")) {
-            this.#status.textContent = "";
-            return;
-        }
+        if (!view?.query || this.#signal.aborted || !this.#popover.matches(":popover-open")) return "";
 
         this.#rowList.syncSetSize();
-        this.#status.textContent = this.#config.matchesLabel(view.count());
+        return this.#config.matchesLabel(view.count());
     }
 
     /**
