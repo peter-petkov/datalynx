@@ -229,13 +229,13 @@
                 <tr><td><kbd>Alt</kbd>+<kbd>↓</kbd> / <kbd>Alt</kbd>+<kbd>↑</kbd></td><td>opens / closes the popover</td></tr>
                 <tr><td><kbd>Page Down</kbd> / <kbd>Page Up</kbd></td><td>a popover's height down or up</td></tr>
                 <tr><td><kbd>Enter</kbd></td><td>picks the active suggestion; without one, does what it does in the input, such as submitting the form</td></tr>
-                <tr><td><kbd>Esc</kbd></td><td>closes the popover and leaves the text; on a closed popover, what the input does (<code>type="search"</code> clears)</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>closes the popover and leaves the text, and hides a <a href="#ghost">ghost</a> until the next keystroke; on a closed popover without a ghost, what the input does (<code>type="search"</code> clears)</td></tr>
                 <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>move the caret, as in any input</td></tr>
-                <tr><td><kbd>Tab</kbd></td><td>moves on, closing the popover</td></tr>
+                <tr><td><kbd>Tab</kbd></td><td>with <code>ghost</code>, accepts a <a href="#ghost">ghost</a> while one shows, staying in the field; otherwise moves on, closing the popover</td></tr>
                 </tbody>
                 </table>
             </details>
-            <p>The input is a combobox (<code>role="combobox"</code>, <code>aria-expanded</code>, <code>aria-controls</code>, <code>aria-autocomplete="list"</code>, <code>aria-activedescendant</code>) controlling a listbox of options, so screen readers follow the active suggestion while focus stays in the input. They hear how many suggestions match once typing pauses. Forced colors (Windows High Contrast) are supported.</p>
+            <p>The input is a combobox (<code>role="combobox"</code>, <code>aria-expanded</code>, <code>aria-controls</code>, <code>aria-autocomplete="list"</code>, <code>aria-activedescendant</code>) controlling a listbox of options, so screen readers follow the active suggestion while focus stays in the input. They hear how many suggestions match once typing pauses, and the value an accepted ghost puts in. Forced colors (Windows High Contrast) are supported.</p>
         </section>
 
         <section id="native-datalist">
@@ -460,6 +460,7 @@
                     <tr><td><code>--datalynx-shadow</code></td><td>the popover's shadow</td></tr>
                     <tr><td><code>--datalynx-max-height</code></td><td>the popover's height limit (<code>45vh</code>)</td></tr>
                     <tr><td><code>--datalynx-image-size</code></td><td>a row's <a href="#images">image</a>, and its icon's width (<code>1.25em</code>)</td></tr>
+                    <tr><td><code>--datalynx-ghost-color</code></td><td>the <a href="#ghost">ghost</a> and its key cap (the input's text color at 40 %)</td></tr>
                     </tbody>
                 </table>
             </details>
