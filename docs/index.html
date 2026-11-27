@@ -42,6 +42,7 @@
             <a href="#keyboard">Opening and keyboard</a>
             <a href="#native-datalist">The browser's datalist</a>
             <a href="#validation">Validation</a>
+            <a href="#ghost">Ghost completion</a>
             <p>Lists</p>
             <a href="#long-lists">Long lists</a>
             <a href="#live-changes">Live changes</a>
@@ -296,6 +297,61 @@
             <p>Datalynx checks the text on <code>input</code>, <code>change</code>, focus out and a form reset, and when the options change. A script that sets <code>input.value</code> fires no event, so Datalynx doesn't see it: dispatch an <code>input</code> event after it. Turning <code>strict</code> off clears the message; a message the page set itself with <code>setCustomValidity</code> is left alone.</p>
         </section>
 
+        <section id="ghost">
+            <h2>Ghost completion</h2>
+            <p>With <code>ghost</code>, the faded rest of the first suggestion that starts with what you type shows after your text, with a small <kbd>Tab</kbd> key cap, and <kbd>Tab</kbd> accepts it. Nothing goes into the value until then, and focus stays in the field. Case and accents don't matter, as in search: type "zur" for Zürich, or "stras" for Straßburg, where ß searches as "ss". Initials and matches inside a word never ghost.</p>
+            <p>Accepting writes the suggestion's exact value, firing <code>input</code> as typing would: in the airport field "zur" ghosts the label Zürich and <kbd>Tab</kbd> writes <code>ZRH</code>. The ghost shows only once you've typed since focusing the field, and right after accepting it waits for the next keystroke, so a second <kbd>Tab</kbd> moves on, as <kbd>Tab</kbd> does whenever there's no ghost. <kbd>Esc</kbd> hides it until you type again. <kbd>↓</kbd> and <kbd>↑</kbd> make it follow the active suggestion. On a touch screen a tap on the ghost accepts it, and the key cap isn't shown.</p>
+            <div class="example" data-ghost>
+                <template>
+                    <label for="ghost-city">City</label>
+                    <data-lynx ghost>
+                        <input id="ghost-city" name="city" list="ghost-cities">
+                    </data-lynx>
+                    <datalist id="ghost-cities">
+                        <option value="Amsterdam"></option>
+                        <option value="Barcelona"></option>
+                        <option value="Kraków"></option>
+                        <option value="New Delhi"></option>
+                        <option value="New York City"></option>
+                        <option value="Newcastle upon Tyne"></option>
+                        <option value="São Paulo"></option>
+                        <option value="Straßburg"></option>
+                        <option value="Zagreb"></option>
+                        <option value="Zug"></option>
+                        <option value="Zürich"></option>
+                    </datalist>
+                    <label for="ghost-airport">Airport</label>
+                    <data-lynx ghost>
+                        <input id="ghost-airport" name="airport" list="ghost-airports">
+                    </data-lynx>
+                    <datalist id="ghost-airports">
+                        <option value="AMS" data-subtext="Netherlands">Amsterdam</option>
+                        <option value="LGW" data-subtext="United Kingdom">London Gatwick</option>
+                        <option value="LHR" data-subtext="United Kingdom">London Heathrow</option>
+                        <option value="SOF" data-subtext="Bulgaria">Sofia</option>
+                        <option value="VIE" data-subtext="Austria">Vienna</option>
+                        <option value="ZRH" data-subtext="Switzerland">Zürich</option>
+                    </datalist>
+                    <div dir="rtl" lang="ar">
+                        <label for="ghost-madina">المدينة</label>
+                        <data-lynx ghost>
+                            <input id="ghost-madina" name="madina" list="ghost-mudun">
+                        </data-lynx>
+                        <datalist id="ghost-mudun">
+                            <option value="القاهرة"></option>
+                            <option value="الإسكندرية"></option>
+                            <option value="الرياض"></option>
+                            <option value="الرباط"></option>
+                            <option value="الدوحة"></option>
+                            <option value="عمّان"></option>
+                        </datalist>
+                    </div>
+                </template>
+                <ol class="log stage-extra" aria-label="Events" aria-live="polite"></ol>
+            </div>
+            <p>The ghost is drawn over the input in its font, in the input's text color at 40 % (<code>--datalynx-ghost-color</code>), and stops at the field's edge. In a right-to-left field it follows on the left, and Arabic letters join once accepted. Accepting plays a short sweep; with reduced motion the value just appears. Screen readers don't hear the ghost, which the list of suggestions already offers, but hear the value it puts in. The key cap's label is the text <code>tabKey</code>, "Tab" in every language.</p>
+        </section>
+
         <section id="long-lists">
             <h2>Long lists</h2>
             <p>Any list longer than a batch, 50 options by default, starts with a batch of rows, and more are shown a few at a time as you scroll, so the scrollbar shrinks smoothly instead of jumping and a datalist of thousands opens at once. Searching still covers every option, and the arrow keys go past the rows shown so far. <code>batch-size</code> sets how many rows the list works with at a time: the rows shown first, and how far ahead it searches. <code>batch-size="0"</code> renders everything at once.</p>
@@ -443,7 +499,10 @@
                     <tr><td><code>icon</code></td><td><code>dlx-item-icon</code></td><td>a row's icon (<code>data-icon</code>)</td></tr>
                     <tr><td><code>label</code></td><td><code>dlx-item-label</code></td><td>a row's label</td></tr>
                     <tr><td><code>subtext</code></td><td><code>dlx-item-subtext</code></td><td>a row's subtext (<code>data-subtext</code>)</td></tr>
-                    <tr><td><code>status</code></td><td><code>dlx-status</code></td><td>how many suggestions match, for screen readers (visually hidden)</td></tr>
+                    <tr><td><code>status</code></td><td><code>dlx-status</code></td><td>what screen readers hear: how many suggestions match, an accepted ghost (visually hidden)</td></tr>
+                    <tr><td><code>ghost</code></td><td><code>dlx-ghost</code></td><td>the ghost's overlay over the input (<code>ghost</code>)</td></tr>
+                    <tr><td><code>ghostText</code></td><td><code>dlx-ghost-text</code></td><td>the ghosted rest of a suggestion</td></tr>
+                    <tr><td><code>ghostKey</code></td><td><code>dlx-ghost-key</code></td><td>the key cap after the ghost</td></tr>
                     </tbody>
                 </table>
                 <p><code>group</code>, <code>groupList</code>, <code>header</code>, <code>divider</code>, <code>placeholder</code> and <code>placeholderBar</code> are there too, for groups and skeleton rows, which Datalynx doesn't show yet.</p>
@@ -453,7 +512,7 @@
 
         <section id="localization">
             <h2>Localization</h2>
-            <p>Each field follows its nearest <code>lang</code> attribute. Search ignores case and accents the way the language does: try "kase" in the German field. Datalynx has a single text, the number of matches that screen readers hear once typing pauses, and its translation loads the first time a field needs it, so an English page loads none.</p>
+            <p>Each field follows its nearest <code>lang</code> attribute. Search ignores case and accents the way the language does: try "kase" in the German field. Datalynx has three texts (the number of matches that screen readers hear once typing pauses, a <code>strict</code> input's message, and a ghost's key cap), and their translation loads the first time a field needs it, so an English page loads none.</p>
             <div class="example">
                 <template>
                     <div lang="de">
@@ -554,6 +613,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                     <tbody>
                     <tr><td><code>batch-size</code></td><td><code>batchSize</code></td><td>number, 50</td><td>rows the list works with at a time; <code>0</code> renders all</td></tr>
                     <tr><td><code>strict</code></td><td><code>strict</code></td><td>boolean, off</td><td>text matching no suggestion makes the input invalid; matches are corrected to their value on change (see <a href="#validation">Validation</a>)</td></tr>
+                    <tr><td><code>ghost</code></td><td><code>ghost</code></td><td>boolean, off</td><td>the faded rest of a suggestion that starts with the text shows after it; <kbd>Tab</kbd> accepts it (see <a href="#ghost">Ghost completion</a>)</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -582,7 +642,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                     <tr><th>Event</th><th>On</th><th>When</th></tr>
                     </thead>
                     <tbody>
-                    <tr><td><code>input</code></td><td>the input</td><td>typing, a pick, which puts the option's value in the input, and a <code>strict</code> correction</td></tr>
+                    <tr><td><code>input</code></td><td>the input</td><td>typing, a pick, which puts the option's value in the input, an accepted ghost, and a <code>strict</code> correction</td></tr>
                     <tr><td><code>change</code></td><td>the input</td><td>a pick, leaving the input after typing, as always, and a <code>strict</code> correction</td></tr>
                     </tbody>
                 </table>
@@ -616,6 +676,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                     <tbody>
                     <tr><td><code>matchesLabel</code></td><td>{count} match, {count} matches (read out once typing pauses)</td></tr>
                     <tr><td><code>invalidValue</code></td><td>Please enter a value from the list. (a <code>strict</code> input's message)</td></tr>
+                    <tr><td><code>tabKey</code></td><td>Tab (the key cap after a ghost, in every language)</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -658,6 +719,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
                         <label class="field-row">batch-size <input class="field" type="number" name="batch-size" min="0" placeholder="50"></label>
                         <label class="field-row">placeholder <input class="field" name="placeholder" value="Type or press ↓"></label>
                         <label class="field-row">strict <input type="checkbox" name="strict"></label>
+                        <label class="field-row">ghost <input type="checkbox" name="ghost"></label>
                     </fieldset>
                     <fieldset>
                         <legend>Page</legend>

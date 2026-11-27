@@ -58,6 +58,23 @@ async function setupValidationDemo() {
 }
 
 // ---------------------------------------------------------------------------
+// Ghost completion: the inputs' events, with the kind of input, so an accepted ghost shows as a replacement
+// ---------------------------------------------------------------------------
+
+async function setupGhostDemo() {
+    const example = document.querySelector("[data-ghost]");
+    const stage = await example.stageReady;
+    const write = eventLog(example.querySelector(".log"));
+
+    for (const input of stage.querySelectorAll("input")) {
+        input.addEventListener("input", event => {
+            if (event.inputType === "insertReplacementText") write(`input: "${input.value}" (ghost accepted)`);
+        });
+        input.addEventListener("change", () => write(`change: "${input.value}"`));
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Live changes. The buttons don't take focus from the input (mousedown is cancelled), so an open popover stays open
 // while they change its datalist.
 // ---------------------------------------------------------------------------
@@ -146,6 +163,7 @@ async function setupPlayground() {
         label.textContent = { fruits: "Fruit", airports: "Airport", countries: "Country", items: "Item" }[list];
         if (value("batch-size")) lynx.setAttribute("batch-size", value("batch-size"));
         if (form.elements.strict.checked) lynx.setAttribute("strict", "");
+        if (form.elements.ghost.checked) lynx.setAttribute("ghost", "");
         input.id = "playground-input";
         input.name = list;
         input.setAttribute("list", "playground-list");
@@ -196,6 +214,7 @@ setupNavigation({ wrap: "platy-picker", sync: (picker, id) => picker.setValue?.(
 setupDatalynxSupport();
 setupEventsDemo();
 setupValidationDemo();
+setupGhostDemo();
 setupLiveDemo();
 setupTheming(document.querySelector("[data-theming]"), "data-lynx");
 setupPlayground();
