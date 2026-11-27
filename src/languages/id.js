@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { other: "{count} hasil" },
     invalidValue: "Harap masukkan nilai dari daftar.",
+    tabKey: "Tab",
 };

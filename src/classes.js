@@ -30,6 +30,7 @@ export const classes = {
     status: "",         // how many suggestions match, for screen readers (visually hidden)
     ghost: "",          // the ghost completion's overlay over the input (ghost)
     ghostText: "",      // the ghosted rest of a suggestion, after what's typed
+    ghostKey: "",       // the key hint after the ghost ("Tab")
 };
 
 const fixed = {
@@ -50,6 +51,7 @@ const fixed = {
     status: "dlx-status",
     ghost: "dlx-ghost",
     ghostText: "dlx-ghost-text",
+    ghostKey: "dlx-ghost-key",
 };
 
 /** The helpers that put a part's fixed dlx-* class and its plug on an element (see Burrowkit's classes.js). */

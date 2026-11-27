@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { zero: "لا توجد نتائج", one: "نتيجة واحدة", two: "نتيجتان", few: "{count} نتائج", many: "{count} نتيجة", other: "{count} نتيجة" },
     invalidValue: "يُرجى إدخال قيمة من القائمة.",
+    tabKey: "Tab",
 };

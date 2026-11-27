@@ -38,6 +38,8 @@ export default class DataLynx extends HTMLElement {
         matchesLabel: { one: "{count} match", other: "{count} matches" },
         // The message of an input with strict whose text matches no suggestion.
         invalidValue: "Please enter a value from the list.",
+        // The key hint after a ghost: the key that accepts it. "Tab" in every language, as software names it.
+        tabKey: "Tab",
     };
 
     /**
@@ -514,7 +516,7 @@ export default class DataLynx extends HTMLElement {
             signal: this.#abort.signal,
             actions: { press: pointerType => this.#pressGhost(pointerType) },
         });
-        this.#ghostView.show(this.#ghost && { rest: this.#ghost.rest });
+        this.#ghostView.show(this.#ghost && { rest: this.#ghost.rest, key: this.#text("tabKey") });
     }
 
     /**
@@ -524,7 +526,11 @@ export default class DataLynx extends HTMLElement {
      */
     #acceptGhost() {
         const input = this.#input;
-        const { value } = this.#ghost.entry;
+        const { entry, covered } = this.#ghost;
+        const { value } = entry;
+        // What sweeps: the part of the value that wasn't typed. A ghost of a label that isn't the value's start writes
+        // the value, all of it new.
+        const prefix = value.startsWith(covered) ? covered : "";
 
         this.#ghostArmed = false;
         if (input.value !== value) {
@@ -537,6 +543,7 @@ export default class DataLynx extends HTMLElement {
             // Browsers don't scroll a caret set by script into view. A right-to-left input scrolls the other way.
             input.scrollLeft = getComputedStyle(input).direction === "rtl" ? -input.scrollWidth : input.scrollWidth;
             input.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertReplacementText" }));
+            this.#ghostView?.sweep(prefix, value.slice(prefix.length));
         }
         this.#updateGhost();
         this.#view.say(value);

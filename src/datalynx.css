@@ -109,6 +109,7 @@
             .dlx-ghost-typed {
                 position: relative;
                 flex: none;
+                min-height: 1lh; /* A line high also when empty (a sweep over a whole value), so the rest stays put. */
             }
 
             .dlx-ghost-typed-text {
@@ -122,6 +123,45 @@
                 color: var(--_dlx-ghost-color);
                 pointer-events: auto;
                 cursor: text;
+            }
+
+            /* The key hint: a small key cap right after the rest, in the ghost color. */
+            .dlx-ghost-key {
+                display: inline-block;
+                margin-inline-start: .4em;
+                padding: 0 .35em;
+                font: 600 max(9px, .62em)/1.25 system-ui, sans-serif;
+                letter-spacing: 0;
+                word-spacing: 0;
+                text-transform: none;
+                vertical-align: .1em;
+                border: 1px solid;
+                border-bottom-width: 2px;
+                border-radius: 4px;
+            }
+
+            /* The sweep over an accepted ghost: the overlay draws the whole value in the input's color (the input's own
+               text is transparent meanwhile), the accepted part through a gradient clipped to its letters, which the
+               script slides across. */
+            &.dlx-ghost-sweeping {
+                .dlx-ghost-typed-text {
+                    color: inherit;
+                }
+
+                .dlx-ghost-text {
+                    color: transparent;
+                    background-size: 200% 100%;
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                }
+            }
+
+            /* Forced colors, as in Windows High Contrast, would paint the ghost as plain text: it stays gray. */
+            @media (forced-colors: active) {
+                .dlx-ghost-text {
+                    forced-color-adjust: none;
+                    color: GrayText;
+                }
             }
         }
 

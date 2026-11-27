@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { one: "{count}টি মিল", other: "{count}টি মিল" },
     invalidValue: "অনুগ্রহ করে তালিকা থেকে একটি মান লিখুন।",
+    tabKey: "Tab",
 };

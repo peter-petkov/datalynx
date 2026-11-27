@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { other: "{count}개 일치" },
     invalidValue: "목록에 있는 값을 입력하세요.",
+    tabKey: "Tab",
 };

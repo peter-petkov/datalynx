@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { one: "{count} съвпадение", other: "{count} съвпадения" },
     invalidValue: "Моля, въведете стойност от списъка.",
+    tabKey: "Tab",
 };

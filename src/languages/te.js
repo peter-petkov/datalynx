@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { one: "{count} సరిపోలిక", other: "{count} సరిపోలికలు" },
     invalidValue: "దయచేసి జాబితాలోని ఒక విలువను నమోదు చేయండి.",
+    tabKey: "Tab",
 };

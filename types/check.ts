@@ -40,6 +40,7 @@ classes.nope = "x";
 DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count} suggestions" };
 DataLynx.languageMap.matchesLabel = count => `${count}`;
 DataLynx.languageMap.invalidValue = "Pick one from the list.";
+DataLynx.languageMap.tabKey = "⇥";
 DataLynx.languages.de = { invalidValue: "Bitte einen Wert aus der Liste." };
 DataLynx.languages.de = { matchesLabel: "{count} Vorschläge" };
 languages.de = de;

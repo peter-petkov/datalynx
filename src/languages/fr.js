@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { one: "{count} résultat", many: "{count} de résultats", other: "{count} résultats" },
     invalidValue: "Veuillez saisir une valeur de la liste.",
+    tabKey: "Tab",
 };

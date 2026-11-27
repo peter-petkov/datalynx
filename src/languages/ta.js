@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { one: "{count} பொருத்தம்", other: "{count} பொருத்தங்கள்" },
     invalidValue: "பட்டியலில் உள்ள ஒரு மதிப்பை உள்ளிடவும்.",
+    tabKey: "Tab",
 };

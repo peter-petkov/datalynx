@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { other: "{count} 个匹配项" },
     invalidValue: "请输入列表中的值。",
+    tabKey: "Tab",
 };

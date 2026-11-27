@@ -46,6 +46,8 @@ export interface Classes {
     ghost: string;
     /** The ghosted rest of a suggestion, after what's typed (`dlx-ghost-text`). */
     ghostText: string;
+    /** The key hint after the ghost, "Tab" (`dlx-ghost-key`). */
+    ghostKey: string;
 }
 
 /** The name of a part with a class plug. */

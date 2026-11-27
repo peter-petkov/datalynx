@@ -8,6 +8,8 @@ export interface Texts {
     matchesLabel: CountedText;
     /** The message of an input with `strict` whose text matches no suggestion. */
     invalidValue: string;
+    /** The key hint after a ghost (`ghost`): the key that accepts it. "Tab" in every language. */
+    tabKey: string;
 }
 
 /**

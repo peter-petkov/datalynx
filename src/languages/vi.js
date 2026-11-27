@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { other: "{count} kết quả" },
     invalidValue: "Vui lòng nhập một giá trị trong danh sách.",
+    tabKey: "Tab",
 };

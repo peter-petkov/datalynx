@@ -5,4 +5,5 @@
 export default {
     matchesLabel: { one: "{count} eşleşme", other: "{count} eşleşme" },
     invalidValue: "Lütfen listeden bir değer girin.",
+    tabKey: "Tab",
 };
