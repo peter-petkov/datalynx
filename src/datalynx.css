@@ -222,8 +222,8 @@
             }
         }
 
-        /* The match count for screen readers: in the page, but not on screen. Pinned to the top, where it can
-           never make the popover scroll. */
+        /* What screen readers hear (the match count, an accepted ghost): in the page, but not on screen. Taken out of
+           the flow, so it never moves the page's own layout. */
         .dlx-status {
             position: absolute;
             inset: 0 auto auto 0;

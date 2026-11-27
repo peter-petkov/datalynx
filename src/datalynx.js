@@ -424,6 +424,14 @@ export default class DataLynx extends HTMLElement {
                     return;
                 }
 
+                case "Tab":
+                    // Accepts the ghost, staying in the field. Without one, Tab moves on, as it does right after
+                    // accepting (no ghost until the next keystroke), so tabbing through a form is never caught.
+                    if (e.shiftKey || !this.#ghost) return;
+                    e.preventDefault();
+                    this.#acceptGhost();
+                    return;
+
                 case "Escape":
                     // Closes, leaves the text, and hides the ghost until the next keystroke. On a closed popover
                     // without a ghost, Esc does what the input does.
@@ -504,9 +512,49 @@ export default class DataLynx extends HTMLElement {
         this.#ghostView ??= new GhostView({
             input: this.#input,
             signal: this.#abort.signal,
-            actions: { press: () => {} },
+            actions: { press: pointerType => this.#pressGhost(pointerType) },
         });
         this.#ghostView.show(this.#ghost && { rest: this.#ghost.rest });
+    }
+
+    /**
+     * Accepts the ghost: the input's value becomes the suggestion's exact value (its value also for a ghost of its
+     * label), with the caret at the end in view, and input fires as typing would, so the popover refilters. Screen
+     * readers, which don't hear the ghost, hear the new value. No ghost shows until the next keystroke.
+     */
+    #acceptGhost() {
+        const input = this.#input;
+        const { value } = this.#ghost.entry;
+
+        this.#ghostArmed = false;
+        if (input.value !== value) {
+            input.value = value;
+            try {
+                input.setSelectionRange(value.length, value.length);
+            } catch {
+                // Inputs without a caret API (type="email") have their caret at the end already.
+            }
+            // Browsers don't scroll a caret set by script into view. A right-to-left input scrolls the other way.
+            input.scrollLeft = getComputedStyle(input).direction === "rtl" ? -input.scrollWidth : input.scrollWidth;
+            input.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertReplacementText" }));
+        }
+        this.#updateGhost();
+        this.#view.say(value);
+    }
+
+    /** A press on the ghost: a tap accepts it; a mouse click only puts the caret at the end. Focus stays. */
+    #pressGhost(pointerType) {
+        const input = this.#input;
+        if (input.getRootNode().activeElement !== input) input.focus({ preventScroll: true });
+
+        if (pointerType === "touch" && this.#ghost) this.#acceptGhost();
+        else {
+            try {
+                input.setSelectionRange(input.value.length, input.value.length);
+            } catch {
+                // No caret API: nothing to move.
+            }
+        }
     }
 
     // -----------------------------------------------------------------

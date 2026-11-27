@@ -26,7 +26,7 @@ export default class SuggestionsView {
     #popover;
     #rowList;
     #list;
-    #status;                // Tells screen readers how many suggestions match, once typing pauses.
+    #status;                // Tells screen readers how many suggestions match, once typing pauses, and what a ghost put in.
     #announceTimer;
     #config = {};
     #active = null;         // The record of the active row, or null.
@@ -59,12 +59,14 @@ export default class SuggestionsView {
         this.#list = this.#rowList.element;
         this.#list.id = `${this.#popover.id}-list`;
 
-        // A polite live region, visually hidden, which screen readers read out when its text changes.
+        // A polite live region, visually hidden, which screen readers read out when its text changes. Outside the
+        // popover, so what it says is heard also while the popover is closed (an accepted ghost).
         this.#status = document.createElement("div");
         addClasses(this.#status, "status");
         this.#status.setAttribute("role", "status");
 
-        this.#popover.append(this.#list, this.#status);
+        this.#popover.append(this.#list);
+        this.#popover.after(this.#status);
         this.#wire();
     }
 
@@ -81,6 +83,7 @@ export default class SuggestionsView {
         clearTimeout(this.#announceTimer);
         this.#rowList.destroy();
         this.#popover.remove();
+        this.#status.remove();
         this.#input.removeAttribute("aria-activedescendant");
     }
 
@@ -139,6 +142,16 @@ export default class SuggestionsView {
     /** Called once the popover is on screen, which is when the list can fill it. */
     opened() {
         this.#rowList.scheduleTopUp();
+    }
+
+    /**
+     * Has screen readers read out a text, politely, whether the popover is open or not. It replaces a match count
+     * still to come. Emptied first, so the same text twice is heard twice.
+     */
+    say(text) {
+        clearTimeout(this.#announceTimer);
+        this.#status.textContent = "";
+        this.#announceTimer = setTimeout(() => this.#status.textContent = text, 100);
     }
 
     #announce() {
