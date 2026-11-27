@@ -26,10 +26,12 @@ export default class GhostView {
 
     static #sweepDuration = 220;
 
-    // What decides where and how the input draws its text, copied onto the overlay.
+    // What decides where and how the input draws its text, copied onto the overlay. The line height too: the text
+    // then sits in a line box like the input's, so at fractional device pixel ratios its glyphs round to the same rows
+    // (the clip only centers that line box in a taller content box, as the input does).
     static #fontProperties = ["fontFamily", "fontSize", "fontWeight", "fontStyle", "fontStretch", "fontVariant",
         "fontFeatureSettings", "fontVariationSettings", "fontKerning", "fontOpticalSizing", "letterSpacing",
-        "wordSpacing", "textTransform", "textRendering", "direction"];
+        "wordSpacing", "textTransform", "textRendering", "direction", "lineHeight"];
 
     // What the sweep sets on the input to hide its own text, put back as it was afterwards.
     static #hidingProperties = ["color", "-webkit-text-fill-color", "caret-color"];
