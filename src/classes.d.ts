@@ -42,6 +42,10 @@ export interface Classes {
     placeholderBar: string;
     /** How many suggestions match, for screen readers, visually hidden (`dlx-status`). */
     status: string;
+    /** The ghost completion's overlay over the input, with `ghost` (`dlx-ghost`). */
+    ghost: string;
+    /** The ghosted rest of a suggestion, after what's typed (`dlx-ghost-text`). */
+    ghostText: string;
 }
 
 /** The name of a part with a class plug. */

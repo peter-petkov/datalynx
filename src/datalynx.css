@@ -31,6 +31,7 @@
  *   --datalynx-shadow               the popover's shadow
  *   --datalynx-max-height           the popover's height limit
  *   --datalynx-image-size           the width and height of a row's image (data-image), and its icon's width
+ *   --datalynx-ghost-color          the ghost completion and its key hint (ghost): by default the input's text color at 40 %
  */
 @supports (anchor-scope: all) and selector(:popover-open) {
     /* Must live at the top level, not nested inside data-lynx. */
@@ -77,6 +78,53 @@
             overflow: auto;
             overscroll-behavior: contain;
         }
+        /* The ghost completion (ghost): an overlay over the input's border box, which the script pads to the input's
+           content box and sets in the input's type. Inside, the typed text, laid out again but invisible, and the
+           ghosted rest hanging off its end. Only the rest takes the pointer. */
+        > .dlx-ghost {
+            position: absolute;
+            display: block;
+            position-anchor: --datalynx;
+            top: anchor(top);
+            left: anchor(left);
+            width: anchor-size(width);
+            height: anchor-size(height);
+            box-sizing: border-box;
+            margin: 0;
+            border: 0;
+            line-height: normal;
+            text-align: start;
+            text-indent: 0;
+            white-space: pre;
+            pointer-events: none;
+
+            > .dlx-ghost-clip {
+                display: flex;
+                align-items: center;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            /* The color stays the input's (set in script), which the ghost color is mixed from. */
+            .dlx-ghost-typed {
+                position: relative;
+                flex: none;
+            }
+
+            .dlx-ghost-typed-text {
+                color: transparent;
+            }
+
+            .dlx-ghost-text {
+                position: absolute;
+                top: 0;
+                inset-inline-start: 100%;
+                color: var(--_dlx-ghost-color);
+                pointer-events: auto;
+                cursor: text;
+            }
+        }
+
     }
 
     /* ==========================================================================================================
@@ -97,6 +145,7 @@
         --_dlx-highlight-color: var(--datalynx-highlight-color, var(--_dlx-skin-highlight-color, light-dark(#1d1c1a, #16120a)));
         --_dlx-radius: var(--datalynx-radius, var(--_dlx-skin-radius, 6px));
         --_dlx-menu-radius: var(--datalynx-menu-radius, var(--_dlx-skin-menu-radius, 8px));
+        --_dlx-ghost-color: var(--datalynx-ghost-color, var(--_dlx-skin-ghost-color, color-mix(in srgb, currentColor 40%, transparent)));
         --_dlx-shadow: var(--datalynx-shadow, var(--_dlx-skin-shadow,
             0 8px 24px light-dark(rgb(0 0 0 / .12), rgb(0 0 0 / .4)),
             0 2px 6px light-dark(rgb(0 0 0 / .08), rgb(0 0 0 / .3))));

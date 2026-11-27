@@ -114,6 +114,50 @@ export default class DatalistSource {
         return byLabel.length === 1 ? byLabel[0] : null;
     }
 
+    /**
+     * The ghost completion for a text as typed, or null: the suggestion it completes to and the rest of that
+     * suggestion's label or value after it, as { entry, rest, covered, from: "label" | "value" }, where `covered` is
+     * the part of that label or value the typed text stands for.
+     *
+     * A suggestion completes the text when its label or value, folded, starts with the folded text and is longer
+     * than it; the label's rest is taken when both do. Given `entry` (the active row), only that suggestion is
+     * tried. Otherwise the first in the popover's order: such a suggestion matches the search strongly (its first
+     * letter starts it), and strong matches come first in list order, so it's the first in list order, also when its
+     * row isn't rendered yet.
+     */
+    ghost(text, locale = "", entry = null) {
+        const query = this.fold(text, locale);
+        if (!query) return null;
+
+        const complete = entry => {
+            for (const from of ["label", "value"]) {
+                const target = entry[from];
+                const folded = this.fold(target, locale);
+                if (folded.length <= query.length || !folded.startsWith(query)) continue;
+
+                const split = DatalistSource.#split(this.#cache.prepare(target, locale), target, query);
+                if (split.rest) return { entry, from, ...split };
+            }
+            return null;
+        };
+
+        if (entry) return complete(entry);
+        for (const entry of this.#entries) {
+            const ghost = complete(entry);
+            if (ghost) return ghost;
+        }
+        return null;
+    }
+
+    // Splits a text that starts with the folded query into what the query covers and the rest. When the query ends
+    // partway into a letter that folds to more than one unit ("stras" in Straße, ß being "ss"), that letter counts as
+    // covered, so the rest starts after it.
+    static #split({ starts, ends }, text, query) {
+        const n = query.length;
+        const at = !starts ? n : starts[n] === starts[n - 1] ? ends[n - 1] : starts[n];
+        return { covered: text.slice(0, at), rest: text.slice(at) };
+    }
+
     /** Folds a text (see Search.fold), remembering it. */
     fold(text, locale = "") {
         return this.#cache.fold(text, locale);

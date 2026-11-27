@@ -16,6 +16,8 @@ lynx.strict = true;
 const strict: boolean = lynx.strict;
 // @ts-expect-error strict is a boolean
 lynx.strict = "strict";
+lynx.ghost = true;
+const ghost: boolean = lynx.ghost;
 const datalist: HTMLDataListElement | null = lynx.datalist;
 // @ts-expect-error datalist is read-only
 lynx.datalist = null;
@@ -30,6 +32,7 @@ const observed: string[] = DataLynx.observedAttributes;
 // Class plugs.
 Object.assign(classes, { item: "rounded-md px-3 py-1.5", itemActive: "bg-gray-100" });
 const part: PartName = "itemActive";
+const ghostPart: PartName = "ghostText";
 // @ts-expect-error not a part
 classes.nope = "x";
 

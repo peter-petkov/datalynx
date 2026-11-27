@@ -5,6 +5,7 @@ import Languages from "burrowkit/languages.js";
 import Search from "burrowkit/search.js";
 import { addClasses, classes, removeClasses } from "./classes.js";
 import DatalistSource from "./datalist-source.js";
+import GhostView from "./ghost-view.js";
 import translations, { languages } from "./languages.js";
 import SuggestionsView from "./suggestions-view.js";
 
@@ -54,7 +55,7 @@ export default class DataLynx extends HTMLElement {
     // its own input, and the popover attribute. Browsers without them keep the native datalist.
     static #isSupported = CSS.supports("anchor-scope", "all") && CSS.supports("selector(:popover-open)");
 
-    static observedAttributes = ["batch-size", "strict"];
+    static observedAttributes = ["batch-size", "strict", "ghost"];
 
     #internals;
     #input;
@@ -70,6 +71,10 @@ export default class DataLynx extends HTMLElement {
     #reconcileTimer;
     #picking = false;       // Whether the input events of a pick are being fired.
     #invalidMessage = null; // The custom validity message Datalynx set on the input, while it's set.
+    #ghostView = null;      // The ghost completion's overlay, while ghost is on.
+    #ghost = null;          // The ghost that shows (see DatalistSource.ghost), or null.
+    #ghostArmed = false;    // Whether something was typed since focus, and since a ghost was accepted or hidden.
+    #composing = false;     // Whether an IME composition is in progress.
 
     constructor() {
         super();
@@ -136,6 +141,8 @@ export default class DataLynx extends HTMLElement {
         this.#source.disconnect();
         this.#highlighter.clear();
         this.#view.destroy();
+        this.#ghostView?.destroy();
+        this.#ghostView = this.#ghost = null;
         this.#internals.states.delete("open");
         this.#setInvalidMessage("");
 
@@ -152,7 +159,11 @@ export default class DataLynx extends HTMLElement {
 
     attributeChangedCallback(name) {
         if (name === "strict") this.#validate();
-        else this.#view?.configure(this.#viewConfig());
+        else if (name === "ghost") {
+            // Turned on, it waits for the next keystroke; turned off, the ghost goes at once.
+            this.#ghostArmed = false;
+            this.#updateGhost();
+        } else this.#view?.configure(this.#viewConfig());
     }
 
     /** The <datalist> the input's suggestions come from. The input's own `list` is taken off while it's enhanced. */
@@ -185,6 +196,18 @@ export default class DataLynx extends HTMLElement {
 
     set strict(value) {
         this.toggleAttribute("strict", Boolean(value));
+    }
+
+    /**
+     * Whether the input shows ghost completion: the faded rest of the first suggestion that starts with what's typed,
+     * drawn after the text but not in its value. Off by default.
+     */
+    get ghost() {
+        return this.hasAttribute("ghost");
+    }
+
+    set ghost(value) {
+        this.toggleAttribute("ghost", Boolean(value));
     }
 
     #viewConfig() {
@@ -295,6 +318,7 @@ export default class DataLynx extends HTMLElement {
         const input = this.#input;
 
         this.#close();
+        this.#ghostArmed = false;
         if (input.value !== entry.value) {
             input.value = entry.value;
             this.#picking = true;
@@ -314,12 +338,14 @@ export default class DataLynx extends HTMLElement {
         const input = this.#input;
 
         // Typing opens it, and narrows it down. Emptying the input while it's open shows every suggestion again.
-        input.addEventListener("input", () => {
+        input.addEventListener("input", e => {
             if (this.#picking) return;
+            if (e.isTrusted) this.#ghostArmed = true;
 
             if (this.#isOpen) this.#refilter();
             else if (input.value.trim()) this.#open();
             this.#validate();
+            this.#updateGhost();
         }, { signal });
 
         // With strict, leaving the field corrects a match to its suggestion's value. Caught on the way down, so the
@@ -348,7 +374,10 @@ export default class DataLynx extends HTMLElement {
         input.addEventListener("blur", () => {
             this.#close();
             this.#validate();
+            this.#updateGhost();
         }, { signal });
+
+        this.#wireGhost();
 
         input.addEventListener("keydown", e => {
             if (e.isComposing || e.ctrlKey || e.metaKey) return;
@@ -396,13 +425,88 @@ export default class DataLynx extends HTMLElement {
                 }
 
                 case "Escape":
-                    // Closes, and leaves the text. On a closed popover Esc does what the input does.
-                    if (!this.#isOpen) return;
+                    // Closes, leaves the text, and hides the ghost until the next keystroke. On a closed popover
+                    // without a ghost, Esc does what the input does.
+                    if (!this.#isOpen && !this.#ghost) return;
                     e.preventDefault();
                     this.#close();
+                    this.#ghostArmed = false;
                     return;
             }
         }, { signal });
+
+        // What the keys did may change the ghost: the active row it follows, the popover closing, Esc.
+        input.addEventListener("keydown", () => this.#updateGhost(), { signal });
+    }
+
+    // -----------------------------------------------------------------
+    // ghost: the faded rest of a suggestion after the text
+    // -----------------------------------------------------------------
+
+    /** Keeps the ghost up to date with what may hide or change it, beyond typing and the keys. */
+    #wireGhost() {
+        const { signal } = this.#abort;
+        const input = this.#input;
+
+        // Focus starts afresh: no ghost until something is typed.
+        input.addEventListener("focus", () => {
+            this.#ghostArmed = false;
+            this.#updateGhost();
+        }, { signal });
+
+        for (const type of ["compositionstart", "compositionend"]) {
+            input.addEventListener(type, () => {
+                this.#composing = type === "compositionstart";
+                this.#updateGhost();
+            }, { signal });
+        }
+
+        // The caret leaving the end, or a selection, hides it. Browsers fire selectionchange at the input or at the
+        // document.
+        const selectionChanged = () => {
+            if (input.getRootNode().activeElement === input) this.#updateGhost();
+        };
+        input.addEventListener("selectionchange", selectionChanged, { signal });
+        document.addEventListener("selectionchange", selectionChanged, { signal });
+    }
+
+    /**
+     * The ghost that should show now, or null. It shows while ghost is on and the input has focus, once something
+     * was typed (since focus, and since a ghost was last accepted or hidden by Esc), outside an IME composition, with
+     * no text selected and the caret at the end, for the suggestion DatalistSource.ghost finds: the active row, or
+     * without one the first that starts with the text.
+     */
+    #findGhost() {
+        const input = this.#input;
+        if (!this.ghost || !this.#ghostArmed || this.#composing) return null;
+        if (input.getRootNode().activeElement !== input) return null;
+
+        // Inputs without a caret API (type="email") leave both null.
+        const { selectionStart: start, selectionEnd: end } = input;
+        if (start !== null && (start !== end || end !== input.value.length)) return null;
+
+        this.#catchUp();
+        const active = this.#isOpen ? this.#view.activeEntry : null;
+        return this.#source.ghost(input.value, this.#locale, active);
+    }
+
+    /** Shows the ghost that should show now, or hides it. The overlay goes when ghost is turned off. */
+    #updateGhost() {
+        if (!this.#source) return;
+
+        this.#ghost = this.#findGhost();
+        if (!this.ghost) {
+            this.#ghostView?.destroy();
+            this.#ghostView = null;
+            return;
+        }
+
+        this.#ghostView ??= new GhostView({
+            input: this.#input,
+            signal: this.#abort.signal,
+            actions: { press: () => {} },
+        });
+        this.#ghostView.show(this.#ghost && { rest: this.#ghost.rest });
     }
 
     // -----------------------------------------------------------------
@@ -413,6 +517,7 @@ export default class DataLynx extends HTMLElement {
         this.#stale = true;
         if (!this.#isOpen) {
             if (this.strict) this.#validate();
+            if (this.#ghost) this.#updateGhost();
             return;
         }
 
@@ -420,6 +525,7 @@ export default class DataLynx extends HTMLElement {
         this.#reconcileTimer = setTimeout(() => {
             this.#catchUp();
             this.#validate();
+            this.#updateGhost();
         }, DataLynx.#reconcileDelay);
     }
 

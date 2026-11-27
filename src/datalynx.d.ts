@@ -29,6 +29,8 @@ export default class DataLynx extends HTMLElement {
     batchSize: number;
     /** The `strict` attribute: text that matches no suggestion makes the input invalid (it stays as typed). */
     strict: boolean;
+    /** The `ghost` attribute: the faded rest of a suggestion that starts with what's typed shows after the text. */
+    ghost: boolean;
 }
 
 declare global {

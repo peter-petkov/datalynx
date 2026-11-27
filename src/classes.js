@@ -28,6 +28,8 @@ export const classes = {
     placeholder: "",    // a skeleton row's content
     placeholderBar: "", // the bar inside it
     status: "",         // how many suggestions match, for screen readers (visually hidden)
+    ghost: "",          // the ghost completion's overlay over the input (ghost)
+    ghostText: "",      // the ghosted rest of a suggestion, after what's typed
 };
 
 const fixed = {
@@ -46,6 +48,8 @@ const fixed = {
     placeholder: "dlx-placeholder",
     placeholderBar: "dlx-placeholder-bar",
     status: "dlx-status",
+    ghost: "dlx-ghost",
+    ghostText: "dlx-ghost-text",
 };
 
 /** The helpers that put a part's fixed dlx-* class and its plug on an element (see Burrowkit's classes.js). */
