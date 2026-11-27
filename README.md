@@ -32,6 +32,7 @@ The input keeps its value, its form submission and its own `input` and `change` 
 - **Search.** As in Platypicker: case and accents don't matter ("zurich" finds Zürich), initials find a suggestion ("nyc" finds New York City), strong matches (where every matched part starts a word) come first, and the matches are highlighted. A suggestion is found by its label, its value, its `data-subtext` and its `data-icon`: "ams", "amsterdam" and "netherlands" all find `<option value="AMS" data-subtext="Netherlands">Amsterdam</option>`.
 - **Rows.** A row shows the option's label (its `label` attribute or text, or else its value), its `data-subtext` beside it, and before it an image (`data-image`) or an icon (`data-icon`), as in Platypicker. Hidden and disabled options are left out, as the browser's own datalist leaves out disabled ones.
 - **Keyboard.** Focus stays in the input. Down and Up move through the suggestions (Down on a closed input opens it on the first one; Up from the first goes back to what was typed), Page Down and Page Up by a popover's height, Enter picks the active suggestion (without one, Enter does what it does in the input, such as submitting the form), Esc closes and leaves the text. Home and End move the caret, as in any input.
+- **Ghost completion.** Opt-in with `ghost`: the faded rest of the first suggestion that starts with what's typed shows after the text, and Tab accepts it. See [Ghost completion](#ghost-completion).
 - **Long lists.** Rows are shown a batch at a time (`batch-size`, 50 by default) and more as the list scrolls, so a datalist of thousands of options opens at once.
 - **Live changes.** Options added, removed or changed in the datalist show up, also while the popover is open, where the active suggestion stays active.
 - **Accessibility.** The input is a combobox (`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-autocomplete="list"`, `aria-activedescendant`) controlling a listbox of options. Screen readers hear how many suggestions match once typing pauses. Forced colors (Windows High Contrast) are supported.
@@ -43,8 +44,9 @@ The input keeps its value, its form submission and its own `input` and `change` 
 |--------------|---------|---------|-------------|
 | `batch-size` | number  | `50`    | How many suggestions the list works with at a time: the rows shown first, and how far ahead it searches. More rows are shown a few at a time as you scroll. `0` renders them all. A missing or invalid value uses the default. |
 | `strict`     | boolean | off     | Text that matches no suggestion makes the input invalid, left as typed; a match in another case or with other accents, or a suggestion's label, is corrected to its value on change. See [Validation](#validation). |
+| `ghost`      | boolean | off     | The faded rest of the first suggestion that starts with what's typed shows after the text; Tab accepts it. See [Ghost completion](#ghost-completion). |
 
-They're reflected as the `batchSize` and `strict` properties.
+They're reflected as the `batchSize`, `strict` and `ghost` properties.
 
 ## Validation
 
@@ -77,6 +79,22 @@ data-lynx input:user-invalid {
 }
 ```
 
+## Ghost completion
+
+With `ghost`, the faded rest of a suggestion shows after what's typed, followed by a small Tab key cap, and Tab accepts it. Nothing goes into the value until it's accepted:
+
+```html
+<data-lynx ghost>
+  <input name="city" list="cities">
+</data-lynx>
+```
+
+- **What ghosts.** The first suggestion, in the popover's order, whose label or value starts with the text, with case and accents folded as search folds them: "zur" ghosts "ich" for Zürich, and "stras" ghosts "e des 17. Juni" for Straße des 17. Juni (ß searches as "ss", so the ghost starts after it). The text stays as typed; only the rest is drawn. When both the label and the value start with the text, the label's rest. Initials ("nyc") and matches inside a word ("rich") never ghost, nor does a text that already equals a suggestion. With an active suggestion (Down, Up), the ghost follows it while it starts with the text.
+- **Accepting.** Tab accepts the ghost and keeps focus in the field. The input takes the suggestion's exact value, which for a ghost of its label is the value ("zur" on `<option value="ZRH">Zürich</option>` gives `ZRH`), with the caret at the end, and fires `input` (`inputType: "insertReplacementText"`) as typing would; `change` follows when the field is left. On a touch screen a tap on the ghost accepts it; a mouse click only puts the caret at the end. Enter, the arrows and End keep their meaning.
+- **When it shows.** While the input has focus, once something was typed since it got focus, with the caret at the end, nothing selected and no IME composition going on, with the popover open or closed. Esc hides it, with the popover, until the next keystroke, and so does accepting: Tab right after accepting moves on, so it never chains completions, and someone who is only tabbing through a form is never caught.
+- **The look.** The ghost is drawn over the input in its font, in the input's text color at 40 % (`--datalynx-ghost-color`), and never runs past the field's edge, nor under a search field's clear button. The key cap says `tabKey` ("Tab"), and hides on touch devices. Accepting plays a short sweep from the ghost color to the text color; with reduced motion the value just appears. Under forced colors the ghost is `GrayText`. Arabic and other joining scripts are drawn apart until accepted.
+- **Screen readers.** The ghost and the key cap are hidden from them (`aria-hidden`): the suggestions are in the listbox already. Accepting is announced: the new value, politely.
+
 ## Theming
 
 Variables, set on `data-lynx` or any ancestor:
@@ -98,17 +116,19 @@ Variables, set on `data-lynx` or any ancestor:
 | `--datalynx-shadow`             | the popover's shadow |
 | `--datalynx-max-height`         | the popover's height limit (`45vh`) |
 | `--datalynx-image-size`         | a row's image, and its icon's width (`1.25em`) |
+| `--datalynx-ghost-color`        | the ghost and its key cap (the input's text color at 40 %) |
 
-The colors follow the page's `color-scheme`, light or dark. Every part has a fixed `dlx-*` class (`dlx-menu`, `dlx-list`, `dlx-item`, `dlx-item-image`, `dlx-item-icon`, `dlx-item-label`, `dlx-item-subtext`, `dlx-status`; the input gets `dlx-input`), and a class plug in `DataLynx.classes` (see `src/classes.js`), filled before the elements are created, as in Platypicker.
+The colors follow the page's `color-scheme`, light or dark. Every part has a fixed `dlx-*` class (`dlx-menu`, `dlx-list`, `dlx-item`, `dlx-item-image`, `dlx-item-icon`, `dlx-item-label`, `dlx-item-subtext`, `dlx-status`, and for `ghost` `dlx-ghost`, `dlx-ghost-text`, `dlx-ghost-key`; the input gets `dlx-input`), and a class plug in `DataLynx.classes` (see `src/classes.js`), filled before the elements are created, as in Platypicker.
 
 ## Localization
 
-Datalynx follows the nearest `lang` attribute, with translations for the same 22 languages as Platypicker, loaded only when needed. It has two texts:
+Datalynx follows the nearest `lang` attribute, with translations for the same 22 languages as Platypicker, loaded only when needed. It has three texts:
 
 | Text           | English                             | Where |
 |----------------|-------------------------------------|-------|
 | `matchesLabel` | {count} match, {count} matches      | read out to screen readers once typing pauses |
 | `invalidValue` | Please enter a value from the list. | the message of a `strict` input whose text matches no suggestion |
+| `tabKey`       | Tab                                 | the key cap after a ghost; "Tab" in every language, as software names the key |
 
 Change them in `DataLynx.languageMap` (English) or `DataLynx.languages` (by language code), as in Platypicker.
 
@@ -123,6 +143,7 @@ DataLynx.languageMap.matchesLabel = { one: "{count} suggestion", other: "{count}
 DataLynx.languages.de = { matchesLabel: "{count} Vorschläge" };
 DataLynx.classes.menu = "my-menu";
 document.querySelector("data-lynx").strict = true;          // see Validation
+document.querySelector("data-lynx").ghost = true;           // see Ghost completion
 ```
 
 `<data-lynx>` has the custom state `:state(open)` while its popover is open. Types come with the package (`src/datalynx.d.ts`).
